@@ -1,0 +1,16 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="LotteMart Test Suite">
+
+    <test name="Auth Tests">
+        <classes>
+            <class name="tests.Login.LoginTest"/>
+        </classes>
+    </test>
+
+<!--    <test name="Search Tests">-->
+<!--        <classes>-->
+<!--            <class name="tests.search.SearchTest"/>-->
+<!--        </classes>-->
+<!--    </test>-->
+
+</suite>
