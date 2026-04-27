@@ -7,10 +7,10 @@
         </classes>
     </test>
 
-<!--    <test name="Search Tests">-->
-<!--        <classes>-->
-<!--            <class name="tests.search.SearchTest"/>-->
-<!--        </classes>-->
-<!--    </test>-->
+    <test name="Product Details Tests">
+        <classes>
+            <class name="tests.Details.ProductDetailsTest"/>
+        </classes>
+    </test>
 
 </suite>
