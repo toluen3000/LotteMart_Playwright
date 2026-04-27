@@ -23,6 +23,13 @@ public class ProductDetailsPage {
     private final Locator tableRows;
     private final Locator detailTabButton;
 
+    // define for quantity test
+    private final Locator btnMinus;
+    private final Locator btnAddToCart;
+    private final Locator btnPlus;
+    private final Locator inputQuantity;
+
+
     // define locators
     public ProductDetailsPage(Page page) {
         this.page = page;
@@ -39,10 +46,64 @@ public class ProductDetailsPage {
         this.detailTable = tabContent.locator("table.table");
         this.tableRows = detailTable.locator("tr");
         this.detailTabButton = page.locator("button:has-text('Đặc điểm sản phẩm')");
+
+        this.btnPlus = page.locator("button[data-type='plus']").first();
+        this.btnMinus = page.locator("button[data-type='minus']").first();
+        this.inputQuantity = page.locator("input.input-number").first();
+        this.btnAddToCart = page.locator("button:has-text('Thêm vào giỏ hàng')");
     }
 
 
     // func to help testing
+
+    public void clickIncreaseQuantity() {
+        btnPlus.click();
+    }
+
+    public String getRawQuantity() {
+        return inputQuantity.inputValue();
+    }
+
+    public void clickDecreaseQuantity() {
+        btnMinus.click();
+    }
+
+    public int getCurrentQuantity() {
+        String value = inputQuantity.inputValue().trim();
+
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 1;
+        }
+    }
+
+    public int getMaxQuantity() {
+        return Integer.parseInt(inputQuantity.getAttribute("max"));
+    }
+
+    public boolean isStockWarningDisplayed() {
+        return page.locator("text=Chỉ còn").isVisible(); // tùy site
+    }
+
+    public void clickAddToCart() {
+        btnAddToCart.click();
+    }
+
+    public boolean isMinusDisable(){
+        return btnMinus.isDisabled();
+    }
+
+    public void enterQuantity(String quantity) {
+        inputQuantity.fill(quantity);
+    }
+
+    public void typeQuantity(String quantity) {
+        inputQuantity.click();
+        page.keyboard().press("Home");
+        inputQuantity.pressSequentially(quantity);
+    }
+
     public void navigateToProduct(String url) {
         page.navigate(url);
         productName.waitFor();
