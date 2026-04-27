@@ -1,0 +1,26 @@
+[
+  {
+    "testCaseId": "DT_01_04",
+    "url": "https://www.lottemart.vn/vi-bdh/product/ba-roi-heo-2cm-2252070000000-p60583",
+    "expectedName": "Ba Rọi Heo Dày 2cm 365 Fresh 350G",
+    "expectedPrice": "69.650 ₫",
+    "expectedHasReview": true,
+    "expectedReviewText": "4.7 (5 Đánh giá)"
+  },
+  {
+    "testCaseId": "DT_02",
+    "url": "https://www.lottemart.vn/vi-bdh/product/gs-mut-dau-good-today-690g-8801214507741-p236704",
+    "expectedName": "Mứt Dâu Good Today 690G",
+    "expectedPrice": "139.000 ₫",
+    "expectedHasReview": false,
+    "expectedReviewText": "No data"
+  },
+  {
+    "testCaseId": "DT_03",
+    "url": "https://www.lottemart.vn/vi-bdh/product/san-pham-moi-chua-co-review",
+    "expectedName": "Sản phẩm test không review",
+    "expectedPrice": "100.000 ₫",
+    "expectedHasReview": false,
+    "expectedReviewText": "Chưa có đánh giá"
+  }
+]
