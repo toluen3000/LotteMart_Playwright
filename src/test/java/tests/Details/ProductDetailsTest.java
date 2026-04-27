@@ -62,6 +62,35 @@ public class ProductDetailsTest {
         Assert.assertEquals(detailsPage.getRatingText(), data.expectedReviewText());
     }
 
+    @Test(dataProvider = "productData")
+    public void testDT04_ProductDescription(ProductData data) {
+        if (!data.testCaseId().equals("DT_04")) return;
+
+        System.out.println("Running: " + data.testCaseId());
+
+        detailsPage.navigateToProduct(data.url());
+
+        // scroll tới phần chi tiết
+        detailsPage.scrollToDetailSection();
+
+        detailsPage.openDetailTab();
+
+        Assert.assertTrue(
+                detailsPage.isDetailTableDisplayed(),
+                "Không hiển thị bảng thông tin chi tiết"
+        );
+
+        Assert.assertTrue(
+                detailsPage.getDetailRowCount() > 3,
+                "Bảng thông tin quá ít dữ liệu (có thể render lỗi)"
+        );
+
+        Assert.assertTrue(
+                detailsPage.hasImportantFields(),
+                "Thiếu thông tin quan trọng (SKU / Hạn sử dụng)"
+        );
+    }
+
     @AfterMethod
     public void tearDown() {
         page.close();
