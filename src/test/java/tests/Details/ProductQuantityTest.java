@@ -5,6 +5,8 @@ import org.testng.Assert;
 import org.testng.annotations.*;
 import pages.Details.ProductDetailsPage;
 
+import java.util.List;
+
 public class ProductQuantityTest {
     private Playwright playwright;
     private Browser browser;
@@ -15,7 +17,7 @@ public class ProductQuantityTest {
     @BeforeMethod
     public void setUp() {
         playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false).setArgs(List.of("--start-maximized")));
         context = browser.newContext();
         page = context.newPage();
         detailsPage = new ProductDetailsPage(page);
@@ -109,6 +111,40 @@ public class ProductQuantityTest {
 
         int max = detailsPage.getMaxQuantity();
         Assert.assertTrue(value <= max, "Không được vượt quá max");
+    }
+
+    @Test(description = "DT_08 - Out of stock")
+    public void testOutOfStock() {
+        detailsPage.navigateToProduct("https://www.lottemart.vn/vi-bdh/product/hop-tp-hokkaido-290ml-8935275210620-p87783");
+
+        Assert.assertTrue(
+                detailsPage.isStockTextVisible(),
+                "Phải hiển thị text tạm thời hết hàng"
+        );
+
+        String text = detailsPage.getStockText();
+        Assert.assertTrue(
+                text.contains("Tạm thời hết hàng"), "Không hiển thị còn x sản phẩm"
+        );
+
+    }
+
+
+    @Test(description = "DT_09 - Low stock warning")
+    public void testLowStockWarning() {
+        detailsPage.navigateToProduct("https://www.lottemart.vn/vi-bdh/product/kr-bo-tui-gn-va-hop-tt-400-710ml-2-8936148090189-p71645");
+
+        Assert.assertTrue(
+                detailsPage.isStockWarningVisible(),
+                "Phải hiển thị cảnh báo sắp hết hàng"
+        );
+
+        String text = detailsPage.getStockWarningText();
+
+        Assert.assertTrue(
+                text.contains("Chỉ còn"),
+                "Text phải chứa 'Chỉ còn'"
+        );
     }
 
     @AfterMethod

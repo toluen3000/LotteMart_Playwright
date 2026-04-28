@@ -2,7 +2,9 @@ package pages.Details;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitForSelectorState;
+import com.microsoft.playwright.options.WaitUntilState;
 
 public class ProductDetailsPage {
     private final Page page;
@@ -28,6 +30,8 @@ public class ProductDetailsPage {
     private final Locator btnAddToCart;
     private final Locator btnPlus;
     private final Locator inputQuantity;
+    private final Locator stockWarning;
+    private final Locator outStock;
 
 
     // define locators
@@ -51,6 +55,8 @@ public class ProductDetailsPage {
         this.btnMinus = page.locator("button[data-type='minus']").first();
         this.inputQuantity = page.locator("input.input-number").first();
         this.btnAddToCart = page.locator("button:has-text('Thêm vào giỏ hàng')");
+        this.stockWarning = page.locator("text=Chỉ còn");
+        this.outStock = page.locator("div:has-text('hết hàng')").first();
     }
 
 
@@ -78,6 +84,27 @@ public class ProductDetailsPage {
         }
     }
 
+    public boolean isStockWarningVisible() {
+        return stockWarning.isVisible();
+    }
+
+    public String getStockWarningText() {
+        return stockWarning.innerText();
+    }
+
+    public boolean isAddToCartDisabled() {
+        return btnAddToCart.isVisible();
+    }
+
+    public boolean isStockTextVisible() {
+        return outStock.isVisible();
+    }
+
+    public String getStockText() {
+        return outStock.first().innerText();
+    }
+
+
     public int getMaxQuantity() {
         return Integer.parseInt(inputQuantity.getAttribute("max"));
     }
@@ -88,6 +115,10 @@ public class ProductDetailsPage {
 
     public void clickAddToCart() {
         btnAddToCart.click();
+    }
+
+    public String getAddToCartText() {
+        return btnAddToCart.innerText();
     }
 
     public boolean isMinusDisable(){
@@ -105,8 +136,10 @@ public class ProductDetailsPage {
     }
 
     public void navigateToProduct(String url) {
-        page.navigate(url);
-        productName.waitFor();
+        page.navigate(url, new Page.NavigateOptions()
+                .setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
+
+        page.locator("h2[itemprop='name']").waitFor();
     }
 
     public String getProductName() {
