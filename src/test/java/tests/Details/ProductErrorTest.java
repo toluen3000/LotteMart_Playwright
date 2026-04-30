@@ -66,9 +66,9 @@ public class ProductErrorTest {
                     detailsPage.isBackToHomeButtonVisible(),
                     "Lỗi UX: Trang báo lỗi không có nút 'Về trang chủ' để điều hướng người dùng!"
             );
-            System.out.println("✅ Hệ thống xử lý lỗi chuẩn UX: Báo lỗi và có nút Về trang chủ.");
+            System.out.println("Hệ thống xử lý lỗi chuẩn UX: Báo lỗi và có nút Về trang chủ.");
         } else {
-            System.out.println("✅ Hệ thống xử lý lỗi bằng cách Redirect về trang chủ an toàn.");
+            System.out.println("Hệ thống xử lý lỗi bằng cách Redirect về trang chủ an toàn.");
         }
     }
 
