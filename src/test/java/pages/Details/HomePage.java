@@ -112,4 +112,45 @@ public class HomePage {
 
     }
 
+    public void typeSearchKeyword(String keyword) {
+        Locator searchBox = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first();
+        searchBox.click(new Locator.ClickOptions().setForce(true));
+        searchBox.clear();
+
+        // delay type
+        searchBox.pressSequentially(keyword, new Locator.PressSequentiallyOptions().setDelay(500));
+    }
+
+
+
+    public boolean waitForSuggestionDropdownToAppear(String keyword) {
+        try {
+            String cleanKeyword = keyword.trim();
+
+
+            //tự động tìm kiếm chuỗi này (không phân biệt hoa/thường)
+            Locator relevantSuggestion = page.locator(".s-block a, .s-block [role='listitem'] a")
+                    .filter(new Locator.FilterOptions().setHasText(cleanKeyword))
+                    .first();
+
+            // wait
+            relevantSuggestion.waitFor(new Locator.WaitForOptions()
+                    .setState(com.microsoft.playwright.options.WaitForSelectorState.VISIBLE)
+                    .setTimeout(5000));
+
+            return true;
+        } catch (com.microsoft.playwright.TimeoutError e) {
+            System.out.println("Không thấy gợi ý nào chứa chữ '" + keyword.trim() + "' xuất hiện sau 5s!");
+            return false;
+        }
+    }
+
+
+    public java.util.List<String> getSuggestionTexts() {
+        // Trỏ vào các thẻ <a> (link) nằm trong listitem của khối .s-block
+        Locator suggestionLinks = page.locator(".s-block li a, .s-block [role='listitem'] a");
+        return suggestionLinks.allInnerTexts();
+    }
+
+
 }
