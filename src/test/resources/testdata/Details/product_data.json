@@ -8,19 +8,27 @@
     "expectedReviewText": "4.7 (5 Đánh giá)"
   },
   {
-    "testCaseId": "DT_02",
+    "testCaseId": "DT_03",
     "url": "https://www.lottemart.vn/vi-bdh/product/gs-mut-dau-good-today-690g-8801214507741-p236704",
     "expectedName": "Mứt Dâu Good Today 690G",
     "expectedPrice": "139.000 ₫",
     "expectedHasReview": false,
-    "expectedReviewText": "No data"
+    "expectedReviewText": "Chưa có đánh giá"
   },
   {
-    "testCaseId": "DT_03",
-    "url": "https://www.lottemart.vn/vi-bdh/product/san-pham-moi-chua-co-review",
-    "expectedName": "Sản phẩm test không review",
-    "expectedPrice": "100.000 ₫",
-    "expectedHasReview": false,
-    "expectedReviewText": "Chưa có đánh giá"
+    "testCaseId": "DT_02",
+    "url": "https://www.lottemart.vn/vi-bdh/product/tra-nu-hoa-cuc-moncha-50g-8936235670386-p237603",
+    "expectedName": "Trà Nụ Hoa Cúc Moncha 50G",
+    "expectedPrice": "82.500 ₫",
+    "expectedHasReview": true,
+    "expectedReviewText": "5.0 (1 Đánh giá)"
+  },
+  {
+    "testCaseId": "DT_04",
+    "url": "https://www.lottemart.vn/vi-bdh/product/tra-nu-hoa-cuc-moncha-50g-8936235670386-p237603",
+    "expectedName": "Trà Nụ Hoa Cúc Moncha 50G",
+    "expectedPrice": "82.500 ₫",
+    "expectedHasReview": true,
+    "expectedReviewText": "5.0 (1 Đánh giá)"
   }
 ]
