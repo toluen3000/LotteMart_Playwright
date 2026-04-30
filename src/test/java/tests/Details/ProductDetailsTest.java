@@ -14,6 +14,7 @@ public class ProductDetailsTest {
     private Page page;
     private ProductDetailsPage detailsPage;
 
+
     @BeforeMethod
     public void setUp() {
         playwright = Playwright.create();
