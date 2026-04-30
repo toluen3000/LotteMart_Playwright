@@ -431,4 +431,37 @@ public class ProductDetailsPage {
     public String getCurrentUrl() {
         return page.url();
     }
+
+    public void navigateToUrl(String url) {
+        System.out.println("Đang truy cập URL: " + url);
+        page.navigate(url);
+        page.waitForLoadState();
+    }
+
+
+    public void refreshPage() {
+        System.out.println("Đang Refresh (F5) lại trang...");
+        page.reload();
+        page.waitForLoadState();
+    }
+
+    // check icon
+    public boolean isNotFoundErrorDisplayed() {
+        // 1. Tóm đúng cái icon SVG đặc trưng mà bạn vừa phát hiện
+        // Dùng *= (contains) để bắt tên file, phòng khi URL src có thay đổi đường dẫn phía trước
+        Locator errorIcon = page.locator("img[src*='icon-cart-empty-disabled.svg']");
+
+        // 2. Vẫn giữ lại bộ check text phòng hờ tương lai Lotte update UI
+        Locator errorText = page.locator("body:has-text('Không tìm thấy'), body:has-text('404'), body:has-text('không tồn tại'), body:has-text('đã ngừng kinh doanh')");
+
+        // Trả về true nếu MỘT TRONG HAI (icon hoặc text) xuất hiện
+        return errorIcon.isVisible() || errorText.isVisible();
+    }
+
+    public boolean isBackToHomeButtonVisible() {
+        Locator homeBtn = page.locator("a:has-text('Về trang chủ'), a[href='/vi-bdh/'], button:has-text('Trang chủ')").first();
+        return homeBtn.isVisible();
+    }
+
+
 }
