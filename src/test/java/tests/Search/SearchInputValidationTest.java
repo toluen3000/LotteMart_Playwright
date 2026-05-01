@@ -200,6 +200,102 @@ public class SearchInputValidationTest {
         System.out.println("SR_08 PASS: Ô nhập liệu cho phép gõ tự do (256+ ký tự).");
     }
 
+    @Test(description = "SR_16 - Tìm kiếm không phân biệt chữ hoa/thường")
+    public void testSearchCaseInsensitive() {
+        String keyword = "GẠO ST25"; // Viết hoa toàn bộ
+
+        System.out.println("BƯỚC 1: Tìm kiếm với từ khóa in hoa: " + keyword);
+        homePage.search(keyword);
+
+        try {
+            page.waitForURL("**/*q=*", new Page.WaitForURLOptions().setTimeout(5000));
+        } catch (com.microsoft.playwright.TimeoutError e) {
+            System.out.println("Cảnh báo: URL chưa chuyển hướng!");
+        }
+
+        System.out.println("BƯỚC 2: Kiểm tra hệ thống trả về kết quả bình thường");
+        int count = searchPage.getProductCount();
+        Assert.assertTrue(count > 0, "Lỗi: Không tìm thấy kết quả khi gõ chữ in hoa!");
+
+        System.out.println("SR_16 PASS: Hệ thống map từ khóa hoa/thường xuất sắc.");
+    }
+
+    @Test(description = "SR_17 - Tìm kiếm có dấu và không dấu")
+    public void testSearchWithoutAccents() {
+        String keyword = "gao st25";
+
+        System.out.println("BƯỚC 1: Tìm kiếm từ khóa không dấu: " + keyword);
+        homePage.search(keyword);
+
+        // THAY ĐỔI: Chờ trang web load xong trạng thái mạng (Network Idle) thay vì chỉ chờ URL
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+
+        System.out.println("BƯỚC 2: Kiểm tra khả năng tự động hiểu tiếng Việt không dấu");
+
+        // Cố tình chờ thêm 2s để chắc chắn UI đã vẽ xong (tránh trường hợp FE render chậm bằng React/Vue)
+        page.waitForTimeout(2000);
+
+        int count = searchPage.getProductCount();
+        Assert.assertTrue(count > 0, "Lỗi: Hệ thống không hỗ trợ tìm kiếm tiếng Việt không dấu!");
+
+        System.out.println("SR_17 PASS: Hệ thống tự động map 'gao' thành 'gạo'.");
+    }
+
+    @Test(description = "SR_18 - Tìm kiếm với ký tự đặc biệt")
+    public void testSearchWithSpecialChars() {
+        String keyword = "@@@###";
+
+        System.out.println("BƯỚC 1: Tìm kiếm toàn ký tự đặc biệt: " + keyword);
+        homePage.search(keyword);
+
+        try {
+            page.waitForURL("**/*q=*", new Page.WaitForURLOptions().setTimeout(5000));
+        } catch (com.microsoft.playwright.TimeoutError e) {}
+
+        System.out.println("BƯỚC 2: Kiểm tra hệ thống không bị Crash và báo lỗi thân thiện");
+        String noResultMsg = searchPage.getNoResultMessage().toLowerCase();
+
+        Assert.assertTrue(
+                noResultMsg.contains("rất tiếc"),
+                "Lỗi: Không hiển thị đúng thông báo 'Rất tiếc' khi không có kết quả!"
+        );
+        System.out.println("SR_18 PASS: Hệ thống chặn rác tốt, không dính lỗi SQL Injection/500.");
+    }
+
+    @Test(description = "SR_19 - Tìm kiếm với khoảng trắng đầu/cuối (Trim)")
+    public void testSearchWithSurroundingSpaces() {
+        String rawKeyword = "   gạo ST25   ";
+        String expectedTrimmedKeyword = "gạo ST25";
+
+        System.out.println("BƯỚC 1: Tìm kiếm từ khóa chưa cắt khoảng trắng: '" + rawKeyword + "'");
+        homePage.search(rawKeyword);
+
+        // THAY ĐỔI: Chờ trạng thái mạng tĩnh lặng
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+
+        System.out.println("BƯỚC 2: Kiểm tra ô Input và Dữ liệu trả về");
+
+        // Ép Playwright đợi cho ô input được cập nhật giá trị (tối đa 5s)
+        Locator searchInput = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first();
+        try {
+            // Chờ cho đến khi value của ô input KHÔNG CÒN chứa chuỗi gốc (tức là đã bị trim)
+            page.waitForCondition(() -> !searchInput.inputValue().equals(rawKeyword), new Page.WaitForConditionOptions().setTimeout(5000));
+        } catch (com.microsoft.playwright.TimeoutError e) {
+            System.out.println("Cảnh báo: Đợi 5s nhưng FE vẫn chưa Trim giá trị!");
+        }
+
+        // 1. Kiểm tra trên UI
+        String actualInputValue = homePage.getSearchInputValue();
+        Assert.assertEquals(actualInputValue, expectedTrimmedKeyword,
+                "Lỗi: Front-end không thực hiện lệnh Trim() xóa khoảng trắng thừa!");
+
+        // 2. Đảm bảo vẫn tìm ra sản phẩm bình thường
+        int count = searchPage.getProductCount();
+        Assert.assertTrue(count > 0, "Lỗi: Trim khoảng trắng bị lỗi dẫn đến không ra kết quả!");
+
+        System.out.println("SR_19 PASS: Hệ thống tự động cắt khoảng trắng thừa (Trim) rất chuẩn.");
+    }
+
     @AfterMethod
     public void tearDown() {
         page.close();
