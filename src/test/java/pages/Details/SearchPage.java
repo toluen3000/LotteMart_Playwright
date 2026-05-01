@@ -99,5 +99,96 @@ public class SearchPage {
             System.out.println("Cảnh báo: Đã chờ 5s nhưng không thấy chữ 'Rất tiếc'!");
             return "";
         }
+
     }
+
+    /**
+     * Nhập khoảng giá và nhấn nút Áp dụng (Fix lỗi Front-end không nhận diện Fill)
+     */
+    public void applyPriceFilter(String minPrice, String maxPrice) {
+        Locator filterSidebar = page.locator("#offcanvas_aside").first();
+        Locator priceRangeBox = filterSidebar.locator(".form-range-rice").first();
+
+        // Bắt các thẻ input bên trong khu vực chọn giá
+        Locator textboxes = priceRangeBox.locator("input");
+
+        // --- XỬ LÝ Ô MIN ---
+        // 1. Click vào ô để focus
+        textboxes.nth(0).click(new Locator.ClickOptions().setForce(true));
+        textboxes.nth(0).clear();
+        // 2. Gõ từng phím (type) với độ trễ 50ms giữa mỗi phím để kích hoạt sự kiện FE
+        if (!minPrice.isEmpty()) {
+            textboxes.nth(0).pressSequentially(minPrice, new Locator.PressSequentiallyOptions().setDelay(50));
+        }
+
+        // --- XỬ LÝ Ô MAX ---
+        textboxes.nth(1).click(new Locator.ClickOptions().setForce(true));
+        textboxes.nth(1).clear();
+        if (!maxPrice.isEmpty()) {
+            textboxes.nth(1).pressSequentially(maxPrice, new Locator.PressSequentiallyOptions().setDelay(50));
+        }
+
+        // --- BẤM ÁP DỤNG ---
+        // Đợi 1 chút xíu (200ms) cho FE kịp lưu State trước khi bấm nút
+        page.waitForTimeout(200);
+        Locator applyButton = priceRangeBox.locator(".btn-search").first();
+        applyButton.click(new Locator.ClickOptions().setForce(true));
+    }
+
+    /**
+     * Kiểm tra giá trị thực tế trong ô Min Price
+     */
+    public String getMinPriceInputValue() {
+        return page.locator("#offcanvas_aside").getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).nth(0).inputValue();
+    }
+
+    /**
+     * Mở dropdown Sắp xếp và chọn theo tên (SR_12)
+     */
+    public void selectSortOption(String optionName) {
+        // Bắt nút Sắp xếp theo log bạn cung cấp: getByRole('button', { name: 'Sắp xếp theo...' })
+        Locator sortBtn = page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON)
+                .filter(new Locator.FilterOptions().setHasText("Sắp xếp theo")).first();
+        sortBtn.click(new Locator.ClickOptions().setForce(true));
+
+        // Chờ menu xổ ra và chọn
+        page.getByText(optionName, new Page.GetByTextOptions().setExact(false)).last().click(new Locator.ClickOptions().setForce(true));
+    }
+
+    /**
+     * Lấy danh sách GIÁ TIỀN của các sản phẩm đang hiển thị
+     */
+    public java.util.List<Integer> getDisplayedPrices() {
+        // Dùng locator bất bại để chỉ nhắm vào thẻ sản phẩm thật sự
+        Locator productItem = page.locator(".item:has(a[href*='/product/'])");
+
+        try {
+            // Ép chờ phần tử đầu tiên xuất hiện sau khi load
+            productItem.first().waitFor(new Locator.WaitForOptions().setTimeout(10000));
+        } catch (Exception e) {
+            System.out.println("⚠️ Cảnh báo: Không có sản phẩm nào load lên!");
+        }
+
+        // Chỉ tìm thẻ giá (price/strong) NẰM BÊN TRONG thẻ sản phẩm hợp lệ
+        Locator priceElements = productItem.locator("strong:has-text('₫'), span:has-text('₫'), .price");
+
+        java.util.List<String> rawPrices = priceElements.allInnerTexts();
+        java.util.List<Integer> parsedPrices = new java.util.ArrayList<>();
+
+        for (String text : rawPrices) {
+            String cleanText = text.replace(".", "").replace(",", "").replace("₫", "").replace("đ", "").trim();
+            try {
+                if (!cleanText.isEmpty()) {
+                    parsedPrices.add(Integer.parseInt(cleanText));
+                }
+            } catch (NumberFormatException e) {
+                // Bỏ qua rác
+            }
+        }
+        return parsedPrices;
+    }
+
+
+
+
 }
