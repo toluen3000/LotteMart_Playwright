@@ -202,4 +202,60 @@ public class HomePage {
     }
 
 
+    /**
+     * Hàm tiện ích: Đăng nhập (Dựa theo Record chuẩn của Lotte Mart)
+     */
+    public void quickLogin(String phone, String password) {
+        try {
+            // Bước 1: Mở form login (nếu nó đang ẩn). Thường ở trang chủ có nút hình user.
+            // Nếu bạn dùng lệnh navigate thẳng tới trang login thì bỏ qua dòng này.
+            page.locator(".icon-user, .account-btn").first().click(new Locator.ClickOptions().setTimeout(5000));
+        } catch (Exception e) {}
+
+        // Bước 2: Điền SĐT/Email
+        Locator phoneInput = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX,
+                new Page.GetByRoleOptions().setName("Email/Số điện thoại *")).first();
+        phoneInput.click(new Locator.ClickOptions().setForce(true));
+        phoneInput.fill(phone);
+
+        // Bước 3: Điền Password
+        Locator passInput = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX,
+                new Page.GetByRoleOptions().setName("Mật khẩu *")).first();
+        passInput.click(new Locator.ClickOptions().setForce(true));
+        passInput.fill(password);
+
+        // Bước 4: Nhấn Enter để submit (Theo đúng flow Record của bạn)
+        passInput.press("Enter");
+
+        // Chờ mất Popup đăng nhập đi (nghĩa là login thành công)
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+        page.waitForTimeout(1500); // Đợi UI chuyển trạng thái Đã đăng nhập
+    }
+
+    /**
+     * Hàm tiện ích: Thêm nhanh 1 sản phẩm vào giỏ và đi tới trang Giỏ Hàng
+     */
+    public void quickAddToCart(String keyword) {
+        // 1. Tìm kiếm
+        search(keyword);
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+        page.waitForTimeout(2000);
+
+        // 2. Click vào sản phẩm đầu tiên
+        Locator firstProduct = page.locator(".item:has(a[href*='/product/']), .product-item:has(a[href*='/product/'])").first();
+        firstProduct.click(new Locator.ClickOptions().setForce(true));
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+
+        // 3. Click nút Thêm vào giỏ hàng
+        page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Thêm vào giỏ hàng")).first().click();
+        page.waitForTimeout(1500); // Chờ popup thành công hiện lên
+
+        // 4. Click thẳng vào icon Giỏ Hàng (Cart) theo đúng Record
+        page.getByRole(com.microsoft.playwright.options.AriaRole.LINK,
+                new Page.GetByRoleOptions().setName("cart")).first().click();
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+    }
+
+
 }

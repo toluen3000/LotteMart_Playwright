@@ -1,12 +1,10 @@
 {
-  "login": {
-    "valid": {
-      "email": "test@gmail.com",
-      "password": "123456"
-    },
-    "invalid": {
-      "email": "abc@gmail.com",
-      "password": "wrongpass"
-    }
+  "valid_user": {
+    "phone": "lukakuvn04@gmail.com",
+    "password": "Quankhonlam06!00000000000"
+  },
+  "user_no_address": {
+    "phone": "quanbkvip1@gmail.com",
+    "password": "Quankhonlam06!"
   }
 }
