@@ -161,11 +161,55 @@ public class DeliveryPaymentTest {
         }
     }
 
+    @Test(description = "OD_08 - Logic hiển thị form Xuất hóa đơn VAT")
+    public void testVATFormToggleLogic() {
+        System.out.println("--- CHẠY TEST OD_08 ---");
+        loginAndNavigateToCheckout("valid_user");
+
+        System.out.println("BƯỚC 1: Tích chọn Xuất hóa đơn VAT");
+        checkoutPage.toggleVATInvoice();
+        Assert.assertTrue(checkoutPage.isVATFormVisible(), "LỖI: Form VAT không hiển thị khi tích chọn!");
+
+        System.out.println("BƯỚC 2: Nhập dữ liệu tạm và Bỏ tích chọn");
+        checkoutPage.fillVATInfo("Công ty ABC", "01010101", "Hà Nội");
+        checkoutPage.toggleVATInvoice(); // Bỏ tích
+        page.waitForTimeout(1000);
+        Assert.assertFalse(checkoutPage.isVATFormVisible(), "LỖI: Form VAT vẫn hiển thị khi đã bỏ tích!");
+
+        System.out.println("BƯỚC 3: Tích chọn lại để kiểm tra xóa trắng dữ liệu");
+        checkoutPage.toggleVATInvoice();
+        String companyName = checkoutPage.getVATFieldValue("Tên công ty");
+        Assert.assertTrue(companyName.isEmpty(), "LỖI: Dữ liệu VAT cũ không bị xóa trắng!");
+
+        System.out.println("OD_08 PASS");
+    }
+
+    @Test(description = "OD_09 - Bỏ trống dữ liệu bắt buộc của hóa đơn VAT")
+    public void testRequiredFieldsVAT() {
+        System.out.println("--- CHẠY TEST OD_09 ---");
+        loginAndNavigateToCheckout("valid_user");
+
+        System.out.println("BƯỚC 1: Click mở form Yêu cầu xuất hóa đơn VAT");
+        checkoutPage.openVATForm();
+
+        System.out.println("BƯỚC 2: Để trống mọi ô nhập liệu và Nhấn 'Xác nhận yêu cầu'");
+        checkoutPage.clickConfirmVATRequest();
+
+        System.out.println("BƯỚC 3: Kiểm tra hành vi chặn đặt hàng của hệ thống");
+        boolean hasErrors = checkoutPage.isVATRequiredErrorsShown();
+
+        Assert.assertTrue(hasErrors, "LỖI LOGIC: Không hiển thị cảnh báo 'trường bắt buộc' khi để trống form VAT!");
+        System.out.println("OD_09 PASS: Hệ thống đã chặn thành công và yêu cầu nhập đủ thông tin VAT.");
+    }
+
 
 
     @AfterMethod
     public void tearDown() {
-        browser.close();
-        playwright.close();
+
+        if (page != null) page.close();
+        if (context != null) context.close();
+        if (browser != null) browser.close();
+        if (playwright != null) playwright.close();
     }
 }

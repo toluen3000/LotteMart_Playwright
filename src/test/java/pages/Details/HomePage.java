@@ -252,4 +252,33 @@ public class HomePage {
     }
 
 
+    public void clearCart() {
+        System.out.println("   -> [Cleanup] Đang dọn dẹp giỏ hàng...");
+        try {
+            page.navigate("https://www.lottemart.vn/cart");
+            page.waitForLoadState(com.microsoft.playwright.options.LoadState.DOMCONTENTLOADED);
+
+            // Xóa Modal nếu có
+            page.evaluate("document.querySelectorAll('.modal, .modal-backdrop').forEach(e => e.remove()); document.body.classList.remove('modal-open');");
+
+            // Cách nhanh nhất Lotte Mart: Nút "Xóa tất cả" hoặc click icon thùng rác từng món
+            Locator deleteAllBtn = page.getByText("Xóa", new Page.GetByTextOptions().setExact(true)).first();
+
+            if (deleteAllBtn.isVisible()) {
+                deleteAllBtn.click(new Locator.ClickOptions().setForce(true));
+                // Xác nhận xóa trên popup (nếu có)
+                Locator confirmBtn = page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Đồng ý")).first();
+                if (confirmBtn.isVisible()) confirmBtn.click(new Locator.ClickOptions().setForce(true));
+
+                page.waitForTimeout(2000); // Chờ API xóa xong
+                System.out.println("   -> [Cleanup] Đã xóa sạch giỏ hàng.");
+            } else {
+                System.out.println("   -> [Cleanup] Giỏ hàng đã trống sẵn.");
+            }
+        } catch (Exception e) {
+            System.out.println("   -> [Cleanup] Lỗi khi dọn dẹp giỏ hàng, bỏ qua.");
+        }
+    }
+
+
 }

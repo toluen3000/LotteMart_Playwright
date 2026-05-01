@@ -70,4 +70,56 @@ public class CheckoutPage {
         // Kiểm tra sự xuất hiện của dòng chữ cảnh báo màu đỏ ngay khi chọn Nhận hàng tại cửa hàng
         return page.locator(".text-red:has-text('không áp dụng hình thức thanh toán tiền mặt')").isVisible();
     }
+
+
+    public void toggleVATInvoice() {
+        page.getByText("Yêu cầu xuất hóa đơn VAT").first().click(new Locator.ClickOptions().setForce(true));
+        page.waitForTimeout(1000); // Chờ hiệu ứng slide toggle của form
+    }
+
+
+    public boolean isVATFormVisible() {
+        // Kiểm tra sự xuất hiện của ô nhập MST hoặc Tên công ty
+        return page.getByPlaceholder("Mã số thuế").isVisible() ||
+                page.getByPlaceholder("Tên công ty").isVisible();
+    }
+
+
+    public String getVATFieldValue(String placeholder) {
+        return page.getByPlaceholder(placeholder).inputValue();
+    }
+
+
+    public void fillVATInfo(String company, String mst, String address) {
+        page.getByPlaceholder("Tên công ty").fill(company);
+        page.getByPlaceholder("Mã số thuế").fill(mst);
+        page.getByPlaceholder("Địa chỉ công ty").fill(address);
+    }
+
+
+    public void openVATForm() {
+        // Dùng đúng Locator từ Codegen của bạn
+        page.getByRole(com.microsoft.playwright.options.AriaRole.LINK,
+                new Page.GetByRoleOptions().setName("Yêu cầu xuất hóa đơn VAT")).click(new Locator.ClickOptions().setForce(true));
+        page.waitForTimeout(1000); // Đợi form trượt ra hoặc popup hiện lên
+    }
+
+
+    public void clickConfirmVATRequest() {
+        page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Xác nhận yêu cầu")).click(new Locator.ClickOptions().setForce(true));
+        page.waitForTimeout(1500); // Đợi text báo lỗi xuất hiện
+    }
+
+
+    public boolean isVATRequiredErrorsShown() {
+        // Dùng getByText chứa 1 phần chuỗi lỗi từ Codegen (vì Lotte hay cắt chữ "bắt buộc" thành "bắt..." trên UI)
+        boolean companyErr = page.getByText("Tên công ty là trường bắt", new Page.GetByTextOptions().setExact(false)).isVisible();
+        boolean addressErr = page.getByText("Địa chỉ công ty là trường bắt", new Page.GetByTextOptions().setExact(false)).isVisible();
+        boolean taxErr = page.getByText("Mã số thuế công ty là trường", new Page.GetByTextOptions().setExact(false)).isVisible();
+        boolean emailErr = page.getByText("Email là trường bắt", new Page.GetByTextOptions().setExact(false)).isVisible();
+
+        // Chỉ cần 1 trong các lỗi này xuất hiện là chứng tỏ hệ thống đã chặn thành công
+        return companyErr || addressErr || taxErr || emailErr;
+    }
 }
