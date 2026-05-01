@@ -112,4 +112,94 @@ public class HomePage {
 
     }
 
+    public void typeSearchKeyword(String keyword) {
+        Locator searchBox = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first();
+        searchBox.click(new Locator.ClickOptions().setForce(true));
+        searchBox.clear();
+
+        // delay type
+        searchBox.pressSequentially(keyword, new Locator.PressSequentiallyOptions().setDelay(500));
+    }
+
+
+
+    public boolean waitForSuggestionDropdownToAppear(String keyword) {
+        try {
+            String cleanKeyword = keyword.trim();
+
+
+            //tự động tìm kiếm chuỗi này (không phân biệt hoa/thường)
+            Locator relevantSuggestion = page.locator(".s-block a, .s-block [role='listitem'] a")
+                    .filter(new Locator.FilterOptions().setHasText(cleanKeyword))
+                    .first();
+
+            // wait
+            relevantSuggestion.waitFor(new Locator.WaitForOptions()
+                    .setState(com.microsoft.playwright.options.WaitForSelectorState.VISIBLE)
+                    .setTimeout(5000));
+
+            return true;
+        } catch (com.microsoft.playwright.TimeoutError e) {
+            System.out.println("Không thấy gợi ý nào chứa chữ '" + keyword.trim() + "' xuất hiện sau 5s!");
+            return false;
+        }
+    }
+
+
+    public java.util.List<String> getSuggestionTexts() {
+        // Trỏ vào các thẻ <a> (link) nằm trong listitem của khối .s-block
+        Locator suggestionLinks = page.locator(".s-block li a, .s-block [role='listitem'] a");
+        return suggestionLinks.allInnerTexts();
+    }
+
+    /**
+     * Lấy giá trị hiện tại đang hiển thị trong ô tìm kiếm
+     */
+    public String getSearchInputValue() {
+        return page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first().inputValue();
+    }
+
+    /**
+     * Hàm tiện ích: Tạo chuỗi ký tự lặp lại với độ dài N
+     */
+    public String generateLongString(int length) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            sb.append("A");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Gõ từ khóa, tự động chộp lấy gợi ý ĐẦU TIÊN và trả về Text (SR_21 - Fix lỗi dấu tiếng Việt)
+     */
+    public String searchAndSelectFirstSuggestion(String keyword) {
+        Locator searchBox = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first();
+
+        searchBox.click(new Locator.ClickOptions().setForce(true));
+        searchBox.clear();
+        searchBox.pressSequentially(keyword, new Locator.PressSequentiallyOptions().setDelay(100));
+
+        // BƯỚC 1: Chờ cả cái khung Dropdown xuất hiện
+        Locator dropdown = page.locator(".s-block").first();
+        dropdown.waitFor(new Locator.WaitForOptions()
+                .setState(com.microsoft.playwright.options.WaitForSelectorState.VISIBLE)
+                .setTimeout(5000));
+
+        // BƯỚC 2: Bí quyết ở đây! Chờ cứng 1.5 giây để API load xong gợi ý thật (đè lên lịch sử cũ)
+        page.waitForTimeout(1500);
+
+        // BƯỚC 3: Chộp ngay dòng đầu tiên xuất hiện (không cần biết nó ghi gì, có dấu hay không dấu)
+        Locator firstSuggestion = page.locator(".s-block a, .s-block [role='listitem'] a").first();
+
+        // Đọc nội dung text để trả về cho file Test
+        String dynamicSelectedText = firstSuggestion.innerText().trim();
+
+        // Click chọn
+        firstSuggestion.click(new Locator.ClickOptions().setForce(true));
+
+        return dynamicSelectedText;
+    }
+
+
 }
