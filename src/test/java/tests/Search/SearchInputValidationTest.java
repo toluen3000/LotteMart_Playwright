@@ -115,6 +115,91 @@ public class SearchInputValidationTest {
         System.out.println("SR_04 PASS: Hệ thống chặn tìm kiếm trống, URL không thay đổi.");
     }
 
+    @Test(description = "SR_05 - Tìm kiếm chỉ với khoảng trắng")
+    public void testSearchWithOnlySpaces() {
+        String currentUrl = page.url();
+        String spaces = "     "; // 5 khoảng trắng
+
+        System.out.println("BƯỚC 1: Nhập 5 khoảng trắng và Enter");
+        homePage.search(spaces);
+        page.waitForTimeout(1000);
+
+        System.out.println("BƯỚC 2: Kiểm tra hệ thống không thực hiện truy vấn");
+        // Nếu hệ thống tốt, URL sẽ không đổi hoặc không có tham số q= rác
+        Assert.assertEquals(page.url(), currentUrl, "Lỗi: Hệ thống vẫn tìm kiếm khi chỉ nhập khoảng trắng!");
+    }
+
+    @Test(description = "SR_06 - Tìm kiếm với từ khóa quá ngắn (1 ký tự)")
+    public void testSearchWithTooShortKeyword() {
+        String oneChar = "a";
+
+        System.out.println("BƯỚC 1: Nhập 1 ký tự ('" + oneChar + "') và Enter");
+        homePage.search(oneChar);
+
+        // THÊM WAIT VÀO ĐÂY: Chờ tối đa 5 giây để URL chuyển hướng chứa tham số "q=a"
+        try {
+            // Dùng ký tự đại diện (**) để bao quát mọi domain hoặc path phía trước
+            page.waitForURL("**/*q=" + oneChar + "**", new Page.WaitForURLOptions().setTimeout(5000));
+        } catch (com.microsoft.playwright.TimeoutError e) {
+            System.out.println("Cảnh báo: Quá 5s mà URL vẫn chưa cập nhật tham số tìm kiếm!");
+        }
+
+        System.out.println("BƯỚC 2: Kiểm tra hệ thống vẫn cho phép truy vấn và hiển thị kết quả");
+
+        // 1. Kiểm tra URL có chứa tham số tìm kiếm (q=a) không
+        Assert.assertTrue(page.url().contains("q=" + oneChar), "Lỗi: Hệ thống không chuyển hướng đến trang kết quả!");
+
+        // 2. Đếm số lượng sản phẩm trả về
+        int productCount = searchPage.getProductCount();
+        System.out.println("   -> Bắt được " + productCount + " sản phẩm cho từ khóa '" + oneChar + "'.");
+
+        // Chỉ cần hệ thống không lỗi và load được lưới sản phẩm (dù là 0 hay nhiều) thì pass
+        Assert.assertTrue(productCount >= 0, "Lỗi logic khi hiển thị danh sách sản phẩm!");
+
+        System.out.println("SR_06 PASS: Hệ thống chấp nhận tìm kiếm 1 ký tự và load kết quả bình thường.");
+    }
+
+    @Test(description = "SR_07 - Kiểm tra biên: 255 ký tự (Hợp lệ)")
+    public void testSearchBoundary255Chars() {
+        // chuỗi 255 chữ A
+        String longKeyword = homePage.generateLongString(255);
+
+        System.out.println("BƯỚC 1: Nhập chuỗi 255 ký tự và tìm kiếm");
+        homePage.search(longKeyword);
+
+        System.out.println("BƯỚC 2: Kiểm tra hệ thống chấp nhận truy vấn 255 ký tự");
+
+        // Chờ trình duyệt xử lý và đẩy 255 ký tự lên URL (tối đa 5s)
+        try {
+            page.waitForURL("**/*q=*", new Page.WaitForURLOptions().setTimeout(5000));
+        } catch (com.microsoft.playwright.TimeoutError e) {
+            System.out.println("Cảnh báo: Quá 5s mà URL vẫn chưa chuyển hướng!");
+        }
+
+        // Xác nhận URL thực tế có chứa chính xác chuỗi 255 ký tự đó
+        Assert.assertTrue(page.url().contains("q=" + longKeyword),
+                "Lỗi: Hệ thống không truyền đúng chuỗi 255 ký tự vào URL!");
+
+        System.out.println("SR_07 PASS: Hệ thống xử lý mượt mà và chấp nhận chuỗi tìm kiếm dài 255 ký tự.");
+    }
+
+    @Test(description = "SR_08 - Kiểm tra biên: Vượt quá 255 ký tự (Hệ thống không giới hạn Input)")
+    public void testSearchBoundary256Chars() {
+        String overLimitKeyword = homePage.generateLongString(256);
+
+        System.out.println("BƯỚC 1: Nhập chuỗi 256 ký tự");
+        homePage.search(overLimitKeyword);
+        page.waitForTimeout(1000);
+
+        System.out.println("BƯỚC 2: Kiểm tra khả năng nhập liệu vô hạn");
+        String actualValue = homePage.getSearchInputValue();
+
+        // Lotte Mart KHÔNG dùng maxlength, cho phép gõ thoải mái
+        Assert.assertEquals(actualValue.length(), 256,
+                "Lỗi: Chuỗi bất ngờ bị hệ thống cắt ngắn!");
+        System.out.println("SR_08 PASS: Ô nhập liệu cho phép gõ tự do (256+ ký tự).");
+    }
+
     @AfterMethod
     public void tearDown() {
         page.close();

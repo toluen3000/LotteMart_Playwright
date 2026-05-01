@@ -152,5 +152,23 @@ public class HomePage {
         return suggestionLinks.allInnerTexts();
     }
 
+    /**
+     * Lấy giá trị hiện tại đang hiển thị trong ô tìm kiếm
+     */
+    public String getSearchInputValue() {
+        return page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first().inputValue();
+    }
+
+    /**
+     * Hàm tiện ích: Tạo chuỗi ký tự lặp lại với độ dài N
+     */
+    public String generateLongString(int length) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            sb.append("A");
+        }
+        return sb.toString();
+    }
+
 
 }
