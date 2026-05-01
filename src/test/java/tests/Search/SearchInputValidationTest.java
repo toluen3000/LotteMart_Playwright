@@ -296,6 +296,118 @@ public class SearchInputValidationTest {
         System.out.println("SR_19 PASS: Hệ thống tự động cắt khoảng trắng thừa (Trim) rất chuẩn.");
     }
 
+    @Test(description = "SR_15 - Tìm kiếm bằng mã SKU")
+    public void testSearchBySKU() {
+        // Lấy một mã SKU giả lập (hoặc mã thật nếu bạn có từ DB Lotte Mart)
+        String skuCode = "8934588012110";
+
+        System.out.println("BƯỚC 1: Tìm kiếm bằng mã SKU: " + skuCode);
+        homePage.search(skuCode);
+
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+
+        System.out.println("BƯỚC 2: Kiểm tra kết quả hiển thị");
+        // Nếu mã SKU đúng thì trả về 1 hoặc 1 vài sản phẩm, nếu sai thì ra câu thông báo "Rất tiếc".
+        // Ở đây mình test hệ thống không bị crash khi nhập SKU
+        boolean hasProducts = searchPage.getProductCount() > 0;
+        boolean hasNoResultMsg = searchPage.getNoResultMessage().toLowerCase().contains("rất tiếc");
+
+        Assert.assertTrue(hasProducts || hasNoResultMsg, "Lỗi: Hệ thống không trả về lưới sản phẩm cũng không báo lỗi!");
+
+        System.out.println("SR_15 PASS: Chức năng tìm kiếm SKU hoạt động (Không crash).");
+    }
+
+    @Test(description = "SR_21 - Tìm kiếm và chọn từ gợi ý đầu tiên (Dữ liệu động)")
+    public void testSearchAndSelectSuggestion() {
+        String shortKeyword = "gao";
+
+        System.out.println("BƯỚC 1: Gõ '" + shortKeyword + "' và hệ thống tự động chọn gợi ý đầu tiên");
+
+        // Đón lấy dữ liệu text thực tế mà hàm vừa chộp được
+        String actualSelectedSuggestion = homePage.searchAndSelectFirstSuggestion(shortKeyword);
+        System.out.println("   -> Đã bắt động và click vào: '" + actualSelectedSuggestion + "'");
+
+        // Chờ URL chuyển trang
+        try {
+            page.waitForURL("**/*q=*", new Page.WaitForURLOptions().setTimeout(5000));
+        } catch (com.microsoft.playwright.TimeoutError e) {
+            System.out.println("Cảnh báo: URL chưa nhảy sau khi click gợi ý!");
+        }
+
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+
+        System.out.println("BƯỚC 2: Kiểm tra trang kết quả hiển thị khớp với gợi ý đã chọn");
+
+        int count = searchPage.getProductCount();
+        Assert.assertTrue(count > 0, "Lỗi: Click gọi ý xong mà không ra sản phẩm nào!");
+
+        // Lấy từ khóa hiện tại đang nằm trên ô tìm kiếm sau khi load xong
+        String inputAfterSearch = homePage.getSearchInputValue().toLowerCase();
+
+        // So sánh 2 cục text (Dùng contains để bao quát trường hợp FE chuẩn hóa chữ hoa/thường)
+        Assert.assertTrue(actualSelectedSuggestion.toLowerCase().contains(inputAfterSearch) || inputAfterSearch.contains(actualSelectedSuggestion.toLowerCase()),
+                "Lỗi: Kết quả tìm kiếm không khớp với gợi ý đã chọn!\n" +
+                        "   + Đã chọn: " + actualSelectedSuggestion + "\n" +
+                        "   + Đang hiển thị: " + inputAfterSearch);
+
+        System.out.println("SR_21 PASS: Luồng Suggestion hoạt động hoàn hảo với dữ liệu động.");
+    }
+
+
+    @Test(description = "SR_14 - Xử lý ngoại lệ khi mất kết nối Cơ sở dữ liệu (Mock 500 Error)")
+    public void testDatabaseConnectionError() {
+        System.out.println("BƯỚC 1: Giả lập ngắt kết nối Database (Mock API trả về lỗi 500)");
+
+        // Sử dụng quyền năng của Playwright để chặn mọi request tìm kiếm (chứa "q=")
+        // và ép nó trả về lỗi 500 (Internal Server Error) mô phỏng DB bị sập
+        page.route("**/*q=*", route -> {
+            route.fulfill(new com.microsoft.playwright.Route.FulfillOptions()
+                    .setStatus(500)
+                    .setContentType("text/html") // Lotte Mart dùng chuyển trang SSR
+                    // Giả lập nội dung lỗi mặc định của Server
+                    .setBody("<html><body><h1>500 Internal Server Error</h1><p>Database connection failed.</p></body></html>"));
+        });
+
+        // Hoặc nếu Lotte Mart gọi API ngầm (fetch/xhr) để search thì dùng đoạn này:
+        page.route("**/*", route -> {
+            if (route.request().resourceType().equals("fetch") || route.request().resourceType().equals("xhr")) {
+                route.abort(); // Mô phỏng đứt cáp/chết API
+            } else {
+                route.resume();
+            }
+        });
+
+        System.out.println("BƯỚC 2: Nhập từ khóa 'Dẻ sườn bò' và tìm kiếm");
+        homePage.search("Dẻ sườn bò");
+
+        // Đợi UI phản ứng lại với lỗi
+        page.waitForTimeout(2000);
+
+        System.out.println("BƯỚC 3: Kiểm tra hệ thống không crash và có thông báo thân thiện");
+
+        // Lấy toàn bộ text hiển thị trên màn hình hiện tại
+        String pageText = page.locator("body").innerText().toLowerCase();
+
+        // Kiểm tra xem giao diện có chứa các câu thông báo lỗi thân thiện không
+        // (Bạn cần thay đổi các từ khóa này cho khớp với thiết kế UI thực tế của Lotte Mart khi có lỗi)
+        boolean hasFriendlyError = pageText.contains("đã xảy ra lỗi")
+                || pageText.contains("thử lại sau")
+                || pageText.contains("rất tiếc")
+                || pageText.contains("bảo trì");
+
+        // Crash thường là trang trắng bóc hoặc văng ra một đống code StackTrace loằng ngoằng
+        boolean isCrashed = pageText.isEmpty() || pageText.contains("exception") || pageText.contains("sql syntax");
+
+        Assert.assertFalse(isCrashed, "Lỗi Nghiêm Trọng: Hệ thống bị Crash (trắng trang hoặc lộ code backend) khi sập DB!");
+        Assert.assertTrue(hasFriendlyError, "Lỗi: Hệ thống bắt được lỗi nhưng không hiển thị thông báo thân thiện cho user!");
+
+        System.out.println("✅ SR_14 PASS: Hệ thống xử lý Exception rất tốt, UI không bị Crash.");
+
+        // DỌN DẸP BẮT BUỘC: Phải gỡ bỏ lệnh chặn mạng để không làm Fail các test case chạy sau nó
+        page.unroute("**/*q=*");
+        page.unroute("**/*");
+    }
+
     @AfterMethod
     public void tearDown() {
         page.close();

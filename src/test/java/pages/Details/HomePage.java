@@ -170,5 +170,36 @@ public class HomePage {
         return sb.toString();
     }
 
+    /**
+     * Gõ từ khóa, tự động chộp lấy gợi ý ĐẦU TIÊN và trả về Text (SR_21 - Fix lỗi dấu tiếng Việt)
+     */
+    public String searchAndSelectFirstSuggestion(String keyword) {
+        Locator searchBox = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first();
+
+        searchBox.click(new Locator.ClickOptions().setForce(true));
+        searchBox.clear();
+        searchBox.pressSequentially(keyword, new Locator.PressSequentiallyOptions().setDelay(100));
+
+        // BƯỚC 1: Chờ cả cái khung Dropdown xuất hiện
+        Locator dropdown = page.locator(".s-block").first();
+        dropdown.waitFor(new Locator.WaitForOptions()
+                .setState(com.microsoft.playwright.options.WaitForSelectorState.VISIBLE)
+                .setTimeout(5000));
+
+        // BƯỚC 2: Bí quyết ở đây! Chờ cứng 1.5 giây để API load xong gợi ý thật (đè lên lịch sử cũ)
+        page.waitForTimeout(1500);
+
+        // BƯỚC 3: Chộp ngay dòng đầu tiên xuất hiện (không cần biết nó ghi gì, có dấu hay không dấu)
+        Locator firstSuggestion = page.locator(".s-block a, .s-block [role='listitem'] a").first();
+
+        // Đọc nội dung text để trả về cho file Test
+        String dynamicSelectedText = firstSuggestion.innerText().trim();
+
+        // Click chọn
+        firstSuggestion.click(new Locator.ClickOptions().setForce(true));
+
+        return dynamicSelectedText;
+    }
+
 
 }

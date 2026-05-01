@@ -188,6 +188,17 @@ public class SearchPage {
         return parsedPrices;
     }
 
+    /**
+     * Tích chọn danh mục ở cột bên trái (SR_13, SR_20)
+     */
+    public void applyCategoryFilter(String categoryName) {
+        Locator filterSidebar = page.locator("#offcanvas_aside").first();
+
+        Locator categoryLabel = filterSidebar.getByText(categoryName, new Locator.GetByTextOptions().setExact(false)).first();
+
+        categoryLabel.click(new Locator.ClickOptions().setForce(true));
+    }
+
 
 
 
