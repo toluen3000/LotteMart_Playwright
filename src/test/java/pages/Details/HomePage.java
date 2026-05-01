@@ -13,13 +13,17 @@ public class HomePage {
 
     public void handleStartupPopups() {
 
-
         try {
             Locator regionBtn = page.locator("button:has-text('Hà Nội Center')");
             Locator confirmBtn = page.locator("button:has-text('Xác nhận')");
+            Locator understoodBtn = page.getByRole(
+                    com.microsoft.playwright.options.AriaRole.BUTTON,
+                    new Page.GetByRoleOptions().setName("Đã hiểu")
+            );
             regionBtn.waitFor(new Locator.WaitForOptions().setTimeout(5000));
             regionBtn.click();
             confirmBtn.click();
+            understoodBtn.click();
             System.out.println("Đã xử lý popup khu vực");
         } catch (TimeoutError e) {
             System.out.println("không có popup khu vực");
@@ -75,7 +79,7 @@ public class HomePage {
             if (nameLoc.isVisible()) {
                 name = nameLoc.innerText().trim();
             } else {
-                // Fallback cuối cùng
+                // Fallback
                 name = linkLoc.innerText().trim();
             }
         }
@@ -152,16 +156,12 @@ public class HomePage {
         return suggestionLinks.allInnerTexts();
     }
 
-    /**
-     * Lấy giá trị hiện tại đang hiển thị trong ô tìm kiếm
-     */
+
     public String getSearchInputValue() {
         return page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first().inputValue();
     }
 
-    /**
-     * Hàm tiện ích: Tạo chuỗi ký tự lặp lại với độ dài N
-     */
+
     public String generateLongString(int length) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < length; i++) {
@@ -170,9 +170,7 @@ public class HomePage {
         return sb.toString();
     }
 
-    /**
-     * Gõ từ khóa, tự động chộp lấy gợi ý ĐẦU TIÊN và trả về Text (SR_21 - Fix lỗi dấu tiếng Việt)
-     */
+
     public String searchAndSelectFirstSuggestion(String keyword) {
         Locator searchBox = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first();
 
@@ -202,9 +200,7 @@ public class HomePage {
     }
 
 
-    /**
-     * Hàm tiện ích: Đăng nhập (Dựa theo Record chuẩn của Lotte Mart)
-     */
+
     public void quickLogin(String phone, String password) {
         try {
             // Bước 1: Mở form login (nếu nó đang ẩn). Thường ở trang chủ có nút hình user.
@@ -232,9 +228,7 @@ public class HomePage {
         page.waitForTimeout(1500); // Đợi UI chuyển trạng thái Đã đăng nhập
     }
 
-    /**
-     * Hàm tiện ích: Thêm nhanh 1 sản phẩm vào giỏ và đi tới trang Giỏ Hàng
-     */
+
     public void quickAddToCart(String keyword) {
         // 1. Tìm kiếm
         search(keyword);
