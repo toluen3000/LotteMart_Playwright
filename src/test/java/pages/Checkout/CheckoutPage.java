@@ -122,4 +122,89 @@ public class CheckoutPage {
         // Chỉ cần 1 trong các lỗi này xuất hiện là chứng tỏ hệ thống đã chặn thành công
         return companyErr || addressErr || taxErr || emailErr;
     }
+
+    public java.util.List<String> getAvailableDeliverySlots() {
+        // Bắt tất cả các nút bấm bên trong khu vực tab khung giờ (swiper-slide)
+        Locator slots = page.locator(".swiper-slide button");
+        return slots.allInnerTexts();
+    }
+
+
+    public void selectCODPayment() {
+        // Tìm nhãn chứa chữ Tiền mặt và click vào radio/checkbox bên cạnh
+        page.locator("label").filter(new Locator.FilterOptions().setHasText("Tiền mặt")).first().click(new Locator.ClickOptions().setForce(true));
+        page.waitForTimeout(1000); // Chờ UI cập nhật viền đỏ (active)
+    }
+
+
+    public void selectVNPAYPayment() {
+        page.locator("label").filter(new Locator.FilterOptions().setHasText("VNPAY QR")).first().click(new Locator.ClickOptions().setForce(true));
+        page.waitForTimeout(1000);
+    }
+
+
+    public void clickPlaceOrder() {
+        page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Đặt hàng")).click(new Locator.ClickOptions().setForce(true));
+    }
+
+    public boolean isCODSelected() {
+        try {
+            Locator codOption = page.locator(".payment-choose li:has-text('Tiền mặt')").first();
+
+            if (!codOption.isVisible()) {
+                return false;
+            }
+
+            String classAttribute = codOption.getAttribute("class");
+            if (classAttribute != null && (classAttribute.contains("active") || classAttribute.contains("checked"))) {
+                return true;
+            }
+
+            Locator radioInput = codOption.locator("input[type='radio']").first();
+            if (radioInput.count() > 0) { // Kiểm tra xem có thẻ input bên trong không
+                return radioInput.isChecked();
+            }
+
+            String currentPaymentText = page.locator(".payment-choose").first().innerText();
+            return currentPaymentText.contains("Tiền mặt");
+
+        } catch (Exception e) {
+            System.out.println("   -> Không thể xác định trạng thái của COD: " + e.getMessage());
+            return false;
+        }
+    }
+
+
+    public void processPlaceOrder() {
+        System.out.println("   -> Click nút Đặt hàng lần 1...");
+        page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Đặt hàng")).click(new Locator.ClickOptions().setForce(true));
+
+        try {
+            System.out.println("   -> Đang chờ popup xác nhận...");
+            Locator confirmBtn = page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                    new Page.GetByRoleOptions().setName("Đặt Hàng").setExact(true));
+
+            confirmBtn.waitFor(new Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.VISIBLE).setTimeout(5000));
+
+            System.out.println("   -> Click xác nhận Đặt Hàng lần 2...");
+            confirmBtn.click(new Locator.ClickOptions().setForce(true));
+        } catch (Exception e) {
+            System.out.println("   -> Bỏ qua popup xác nhận (Có thể web không yêu cầu hoặc click lần 1 đã qua thẳng).");
+        }
+    }
+
+
+    public boolean isOrderSuccess() {
+        try {
+            Locator successHeading = page.getByRole(com.microsoft.playwright.options.AriaRole.HEADING,
+                    new Page.GetByRoleOptions().setName("Đặt hàng thành công!"));
+
+            successHeading.waitFor(new Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.VISIBLE).setTimeout(20000));
+            return successHeading.isVisible();
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
