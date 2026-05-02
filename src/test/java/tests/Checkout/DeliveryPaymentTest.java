@@ -43,7 +43,8 @@ public class DeliveryPaymentTest {
         page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
         try { homePage.handleStartupPopups(); } catch (Exception e) {}
 
-        page.getByRole(com.microsoft.playwright.options.AriaRole.LINK, new Page.GetByRoleOptions().setName("Đăng nhập")).first().click();
+        page.getByRole(com.microsoft.playwright.options.AriaRole.LINK, new Page.GetByRoleOptions().setName("Đăng nhập"))
+                .first().click(new Locator.ClickOptions().setForce(true));
         page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Email/Số điện thoại *")).first().fill(phone);
         page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Mật khẩu *")).first().fill(pass);
         page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Đăng nhập")).first().click();
@@ -135,6 +136,7 @@ public class DeliveryPaymentTest {
         int subtotal = checkoutPage.getSubtotal();
         System.out.println("   -> Tổng tiền hàng: " + subtotal);
 
+
         if (subtotal >= 200000) {
             System.out.println("⚠CẢNH BÁO: Đơn hàng >= 200k, phí ship sẽ bằng 0 theo chính sách web.");
         }
@@ -142,6 +144,7 @@ public class DeliveryPaymentTest {
         // 2. Chuyển sang Nhận tại cửa hàng (Baseline phí ship = 0)
         System.out.println("BƯỚC 1: Chọn Nhận hàng tại cửa hàng");
         checkoutPage.selectStorePickup();
+        page.waitForTimeout(3000);
         int pickupTotal = checkoutPage.getFinalTotal();
         Assert.assertEquals(checkoutPage.getShippingFee(), 0, "Lỗi: Phí ship chưa về 0 khi nhận tại kho!");
 
@@ -304,46 +307,158 @@ public class DeliveryPaymentTest {
         loginAndNavigateToCheckout("valid_user");
 
         System.out.println("BƯỚC 1: Chọn thanh toán VNPAY QR");
-        // Kiểm tra nếu chưa phải VNPAY thì click mở menu và chọn VNPAY
         try {
-            // Đợi 2s để UI load trạng thái mặc định
             page.waitForTimeout(2000);
             String currentPaymentText = page.locator(".payment-choose").first().innerText();
-            if (!currentPaymentText.contains("VNPAY")) {
-                System.out.println("   -> Đang chọn thanh toán VNPAY...");
-                // Mở dropdown phương thức thanh toán
-                page.locator(".payment-choose").first().click(new Locator.ClickOptions().setForce(true));
-                page.waitForTimeout(500);
 
-                // Chọn VNPAY
-                page.locator(".payment-choose li").filter(new Locator.FilterOptions().setHasText("VNPAY")).first()
-                        .click(new Locator.ClickOptions().setForce(true));
+            if (!currentPaymentText.contains("VNPAY") && !currentPaymentText.contains("Quét mã")) {
+                System.out.println("   -> Đang mở danh sách phương thức...");
+                page.locator(".payment-choose").first().click(new Locator.ClickOptions().setForce(true));
                 page.waitForTimeout(1000);
-            } else {
-                System.out.println("   -> VNPAY đã được chọn sẵn.");
+
+                System.out.println("   -> Đang click chọn VNPAY...");
+                page.locator("li:has-text('VNPAY'), li:has-text('Quét mã')")
+                        .first()
+                        .click(new Locator.ClickOptions().setForce(true));
+
+                page.waitForTimeout(1500);
             }
         } catch (Exception e) {
             System.out.println("   -> Lỗi khi chọn VNPAY: " + e.getMessage());
         }
 
         System.out.println("BƯỚC 2: Thực hiện chốt đơn");
+
+        System.out.println("   -> Đang chờ hệ thống ghi nhận phương thức thanh toán mới...");
+        page.waitForTimeout(3000);
+
         checkoutPage.processPlaceOrder();
 
         System.out.println("BƯỚC 3: Kiểm tra chuyển hướng sang cổng thanh toán VNPAY");
         try {
-            // Đợi tối đa 20s để hệ thống Lotte tạo đơn và redirect sang cổng VNPAY
-            // Cập nhật điều kiện chờ URL dựa trên chuỗi URL thực tế bạn cung cấp
             page.waitForURL("**pay.vnpay.vn**", new Page.WaitForURLOptions().setTimeout(20000));
             System.out.println("   -> Đã chuyển đến URL: " + page.url());
 
-            // Assert chốt hạ: URL phải chứa tên miền thanh toán của VNPAY
             Assert.assertTrue(page.url().contains("pay.vnpay.vn"), "LỖI: URL không thuộc cổng thanh toán VNPAY!");
-
         } catch (Exception e) {
             Assert.fail("LỖI: Timeout! Không thể chuyển hướng sang trang thanh toán VNPAY.");
         }
 
-        System.out.println("✅ OD_11 PASS: Chuyển hướng sang Cổng Thanh toán Online VNPAY thành công.");
+        System.out.println("OD_11 PASS: Chuyển hướng sang Cổng Thanh toán Online VNPAY thành công.");
+    }
+
+    @Test(description = "OD_17 - Kiểm tra giá trị mặc định phương thức giao hàng & thanh toán")
+    public void testDefaultSelections() {
+        System.out.println("--- CHẠY TEST OD_17 ---");
+        loginAndNavigateToCheckout("valid_user");
+        page.waitForTimeout(2000); // Chờ UI load xong trạng thái
+
+        System.out.println("BƯỚC 1: Kiểm tra Giao hàng tiêu chuẩn mặc định");
+        // Kiểm tra thẻ input radio của "Giao hàng tiêu chuẩn" có thuộc tính checked không
+        boolean isStandardDeliveryChecked = page.locator("input[name='grp-delivery']").first().isChecked();
+        Assert.assertTrue(isStandardDeliveryChecked, "LỖI: Giao hàng tiêu chuẩn không được chọn mặc định!");
+
+        System.out.println("BƯỚC 2: Kiểm tra Phương thức thanh toán mặc định (Lotte Mart có lưu lịch sử)");
+        try {
+            // Lấy text của phương thức đang được hiển thị chọn sẵn trên màn hình
+            String defaultPayment = page.locator(".payment-choose").first().innerText().trim();
+            System.out.println("   -> Hệ thống đang ghi nhớ phương thức: [" + defaultPayment + "]");
+
+            // Đảm bảo giao diện không bị trống (phải có 1 cái được gán mặc định)
+            Assert.assertFalse(defaultPayment.isEmpty(), "LỖI: Hệ thống không tự động gán phương thức thanh toán nào!");
+
+            // Kiểm tra xem text hiển thị có nằm trong danh sách các phương thức hợp lệ không
+            boolean isValidPayment = defaultPayment.contains("Tiền mặt") ||
+                    defaultPayment.contains("VNPAY") ||
+                    defaultPayment.contains("Thẻ") ||
+                    defaultPayment.contains("ZaloPay"); // Bạn có thể thêm các ví khác nếu có
+
+            Assert.assertTrue(isValidPayment, "LỖI: Phương thức mặc định hiển thị tên không hợp lệ: " + defaultPayment);
+
+        } catch (Exception e) {
+            Assert.fail("LỖI: Không thể đọc được giao diện Phương thức thanh toán!");
+        }
+
+        System.out.println("OD_17 PASS: Giao hàng tiêu chuẩn và Phương thức thanh toán đã được tự động gán thành công.");
+    }
+
+
+    @Test(description = "OD_13 - Chống chọn nút xác nhận đặt hàng nhiều lần liên tiếp")
+    public void testPreventDoubleClickOrder() {
+        System.out.println("--- CHẠY TEST OD_13 ---");
+        loginAndNavigateToCheckout("valid_user");
+
+        System.out.println("BƯỚC 1: Đảm bảo Phương thức thanh toán là Tiền mặt (COD) để test an toàn");
+        try {
+            page.waitForTimeout(2000);
+            String currentPaymentText = page.locator(".payment-choose").first().innerText().trim();
+            if (currentPaymentText.contains("VNPAY") || !checkoutPage.isCODSelected()) {
+                checkoutPage.selectCODPayment();
+            }
+        } catch (Exception e) {}
+
+        System.out.println("BƯỚC 2: Click nút 'Đặt hàng' đầu tiên để mở popup");
+        page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Đặt hàng")).click(new Locator.ClickOptions().setForce(true));
+
+        System.out.println("BƯỚC 3: Thử spam click vào nút 'Đặt Hàng' trên popup");
+        Locator confirmBtn = page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Đặt Hàng").setExact(true));
+
+        // Đợi popup hiển thị rõ ràng
+        confirmBtn.waitFor(new Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.VISIBLE).setTimeout(5000));
+
+        // 1. Cú click đầu tiên: Bắt buộc phải thực hiện thành công
+        confirmBtn.click(new Locator.ClickOptions().setForce(true));
+
+        System.out.println("BƯỚC 4: Kiểm tra trạng thái ngăn chặn của hệ thống");
+        boolean isPrevented = false;
+
+        try {
+
+            confirmBtn.click(new Locator.ClickOptions().setForce(true).setTimeout(1000));
+            confirmBtn.click(new Locator.ClickOptions().setForce(true).setTimeout(1000));
+
+            if (confirmBtn.isVisible()) {
+                isPrevented = confirmBtn.isDisabled() ||
+                        (confirmBtn.getAttribute("class") != null && confirmBtn.getAttribute("class").contains("disabled"));
+            }
+        } catch (Exception e) {
+            System.out.println("   -> Nút đã biến mất hoặc bị khóa (Hệ thống phản hồi tức thời).");
+            isPrevented = true;
+        }
+
+        Assert.assertTrue(isPrevented, "LỖI: Nút xác nhận vẫn click được nhiều lần, nguy cơ trùng đơn!");
+        System.out.println("OD_13 PASS: Hệ thống chặn spam click thành công.");
+    }
+
+
+    @Test(description = "OD_14 - Ngăn chặn làm mới trang tạo duplicate đơn hàng")
+    public void testPreventDuplicateOrderOnReload() {
+        System.out.println("--- CHẠY TEST OD_14 ---");
+        loginAndNavigateToCheckout("valid_user");
+
+        if (!checkoutPage.isCODSelected()) checkoutPage.selectCODPayment();
+
+        System.out.println("BƯỚC 1: Chốt đơn bình thường");
+        checkoutPage.processPlaceOrder();
+
+        // Đợi sang trang thành công
+        Assert.assertTrue(checkoutPage.isOrderSuccess(), "LỖI: Không thể đặt hàng thành công để test!");
+        String successUrl = page.url();
+
+        System.out.println("BƯỚC 2: Giả lập người dùng nhấn F5 (Refresh) trang");
+        page.reload();
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.DOMCONTENTLOADED);
+
+        System.out.println("BƯỚC 3: Kiểm tra hành vi sau khi Reload");
+        Assert.assertTrue(page.url().equals(successUrl) || page.url().equals("https://www.lottemart.vn/"),
+                "LỖI: Hệ thống xử lý Reload trang kết quả không an toàn!");
+
+        boolean isDuplicateError = page.locator("text=đã tồn tại").isVisible() || page.locator("text=lỗi").isVisible();
+        Assert.assertFalse(isDuplicateError, "LỖI: F5 làm hệ thống cố gắng tạo thêm đơn và văng lỗi!");
+
+        System.out.println("OD_14 PASS: Hệ thống xử lý an toàn thao tác Refresh.");
     }
 
 
