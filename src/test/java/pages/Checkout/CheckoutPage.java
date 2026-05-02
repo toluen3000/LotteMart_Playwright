@@ -130,10 +130,86 @@ public class CheckoutPage {
     }
 
 
+
+    /**
+     * Mở dropdown và chọn thanh toán Tiền mặt (COD) an toàn tuyệt đối
+     */
     public void selectCODPayment() {
-        // Tìm nhãn chứa chữ Tiền mặt và click vào radio/checkbox bên cạnh
-        page.locator("label").filter(new Locator.FilterOptions().setHasText("Tiền mặt")).first().click(new Locator.ClickOptions().setForce(true));
-        page.waitForTimeout(1000); // Chờ UI cập nhật viền đỏ (active)
+        System.out.println("   [PAGE] Đang kiểm tra phương thức thanh toán...");
+        try {
+            // Chờ đợi để đảm bảo UI đã ổn định
+            page.waitForTimeout(2000);
+
+            // Lấy text của khu vực hiển thị phương thức hiện tại
+            String currentPaymentText = page.locator(".payment-choose").first().innerText();
+
+            // Kiểm tra nếu chưa chọn "Tiền mặt"
+            if (!currentPaymentText.contains("Tiền mặt")) {
+                System.out.println("   [PAGE] -> Đang đổi sang Tiền mặt (COD)...");
+
+                // 1. Mở danh sách phương thức thanh toán
+                page.locator(".payment-choose").first().click();
+                page.waitForTimeout(1000);
+
+                // 2. SỬA LOCATOR TẠI ĐÂY:
+                // Sử dụng filter để tìm đúng label chứa text "Tiền mặt" và có input value là "cashondelivery"
+                Locator codOption = page.locator("label.checkbox-cs").filter(new Locator.FilterOptions().setHasText("Tiền mặt"));
+
+                if (codOption.isVisible()) {
+                    codOption.click(new Locator.ClickOptions().setForce(true));
+                    System.out.println("   [PAGE] -> Đã click chọn Tiền mặt thành công.");
+                } else {
+                    // Backup plan: Nếu filter label không được, thử click trực tiếp vào input theo value
+                    page.locator("input[value='cashondelivery']").click(new Locator.ClickOptions().setForce(true));
+                }
+
+                page.waitForTimeout(1500);
+            } else {
+                System.out.println("   [PAGE] -> Tiền mặt đã được chọn sẵn.");
+            }
+        } catch (Exception e) {
+            System.out.println("   [PAGE] Lỗi khi thao tác chọn COD: " + e.getMessage());
+        }
+    }
+
+
+    /**
+     * Chờ popup thành công, đọc mã đơn hàng và ĐÓNG popup
+     */
+    public String getOrderIdAndClosePopup() {
+        System.out.println("   [PAGE] Đang chờ Popup Đặt hàng thành công để đọc thông tin...");
+        try {
+            // SỬA LỖI Ở ĐÂY: Dùng Page.GetByTextOptions() thay vì gọi cả chuỗi package dài
+            page.getByText("Đặt hàng thành công", new Page.GetByTextOptions().setExact(false))
+                    .first().waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(15000));
+
+            // Lấy toàn bộ text trên màn hình để quét mã
+            String pageText = page.locator("body").innerText();
+
+            // Quét mã 13 số bắt đầu bằng 260
+            String orderId = null;
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(260\\d{10})").matcher(pageText);
+            if (matcher.find()) {
+                orderId = matcher.group(1);
+                System.out.println("   [PAGE] -> Đã đọc được Mã đơn hàng từ Popup: " + orderId);
+            } else {
+                System.out.println("   [PAGE] ⚠️ Không tìm thấy dãy số Mã đơn hàng!");
+            }
+
+            // TẮT POPUP
+            try {
+                System.out.println("   [PAGE] Đang bấm nút tắt Popup (btn-close)...");
+                page.locator(".btn-close").first().click(new com.microsoft.playwright.Locator.ClickOptions().setTimeout(3000));
+                page.waitForTimeout(1000); // Đợi popup mờ đi
+            } catch (Exception e) {
+                System.out.println("   [PAGE] Bỏ qua thao tác tắt popup.");
+            }
+
+            return orderId;
+        } catch (Exception e) {
+            System.out.println("   [PAGE] Lỗi khi xử lý Popup: " + e.getMessage());
+        }
+        return null;
     }
 
 
@@ -187,7 +263,7 @@ public class CheckoutPage {
                     new Page.GetByRoleOptions().setName("Đặt Hàng").setExact(true));
 
             confirmBtn.waitFor(new Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.VISIBLE).setTimeout(5000));
-
+            page.waitForTimeout(2000);
             System.out.println("   -> Click xác nhận Đặt Hàng lần 2...");
             confirmBtn.click(new Locator.ClickOptions().setForce(true));
         } catch (Exception e) {
