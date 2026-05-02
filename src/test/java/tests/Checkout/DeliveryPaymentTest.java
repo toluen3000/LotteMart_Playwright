@@ -270,7 +270,7 @@ public class DeliveryPaymentTest {
         System.out.println("OD_15 PASS: Toàn bộ mốc thời gian đều là tương lai.");
     }
 
-    @Test(description = "OD_10 - Đặt hàng thành công với phương thức COD")
+    @Test(description = "test_OD10_PM01_OrderAndPayByCOD")
     public void testOrderSuccessWithCOD() {
         System.out.println("--- CHẠY TEST OD_10 ---");
         loginAndNavigateToCheckout("valid_user");
@@ -301,7 +301,7 @@ public class DeliveryPaymentTest {
         } catch (Exception e) {}
     }
 
-    @Test(description = "OD_11 - Tạo đơn hàng thành công để chờ Thanh toán Online (VNPAY)")
+    @Test(description = "test_OD11_PM02_OrderAndPayByVNPay(online payment method)")
     public void testOrderSuccessWithOnlinePayment() {
         System.out.println("--- CHẠY TEST OD_11 ---");
         loginAndNavigateToCheckout("valid_user");
@@ -383,7 +383,7 @@ public class DeliveryPaymentTest {
     }
 
 
-    @Test(description = "OD_13 - Chống chọn nút xác nhận đặt hàng nhiều lần liên tiếp")
+    @Test(description = "test_OD13_PM03_OrderAndPayByCOD")
     public void testPreventDoubleClickOrder() {
         System.out.println("--- CHẠY TEST OD_13 ---");
         loginAndNavigateToCheckout("valid_user");
