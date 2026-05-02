@@ -13,13 +13,17 @@ public class HomePage {
 
     public void handleStartupPopups() {
 
-
         try {
             Locator regionBtn = page.locator("button:has-text('Hà Nội Center')");
             Locator confirmBtn = page.locator("button:has-text('Xác nhận')");
+            Locator understoodBtn = page.getByRole(
+                    com.microsoft.playwright.options.AriaRole.BUTTON,
+                    new Page.GetByRoleOptions().setName("Đã hiểu")
+            );
             regionBtn.waitFor(new Locator.WaitForOptions().setTimeout(5000));
             regionBtn.click();
             confirmBtn.click();
+            understoodBtn.click();
             System.out.println("Đã xử lý popup khu vực");
         } catch (TimeoutError e) {
             System.out.println("không có popup khu vực");
@@ -75,7 +79,7 @@ public class HomePage {
             if (nameLoc.isVisible()) {
                 name = nameLoc.innerText().trim();
             } else {
-                // Fallback cuối cùng
+                // Fallback
                 name = linkLoc.innerText().trim();
             }
         }
@@ -152,16 +156,12 @@ public class HomePage {
         return suggestionLinks.allInnerTexts();
     }
 
-    /**
-     * Lấy giá trị hiện tại đang hiển thị trong ô tìm kiếm
-     */
+
     public String getSearchInputValue() {
         return page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first().inputValue();
     }
 
-    /**
-     * Hàm tiện ích: Tạo chuỗi ký tự lặp lại với độ dài N
-     */
+
     public String generateLongString(int length) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < length; i++) {
@@ -170,9 +170,7 @@ public class HomePage {
         return sb.toString();
     }
 
-    /**
-     * Gõ từ khóa, tự động chộp lấy gợi ý ĐẦU TIÊN và trả về Text (SR_21 - Fix lỗi dấu tiếng Việt)
-     */
+
     public String searchAndSelectFirstSuggestion(String keyword) {
         Locator searchBox = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Tìm kiếm")).first();
 
@@ -199,6 +197,87 @@ public class HomePage {
         firstSuggestion.click(new Locator.ClickOptions().setForce(true));
 
         return dynamicSelectedText;
+    }
+
+
+
+    public void quickLogin(String phone, String password) {
+        try {
+            // Bước 1: Mở form login (nếu nó đang ẩn). Thường ở trang chủ có nút hình user.
+            // Nếu bạn dùng lệnh navigate thẳng tới trang login thì bỏ qua dòng này.
+            page.locator(".icon-user, .account-btn").first().click(new Locator.ClickOptions().setTimeout(5000));
+        } catch (Exception e) {}
+
+        // Bước 2: Điền SĐT/Email
+        Locator phoneInput = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX,
+                new Page.GetByRoleOptions().setName("Email/Số điện thoại *")).first();
+        phoneInput.click(new Locator.ClickOptions().setForce(true));
+        phoneInput.fill(phone);
+
+        // Bước 3: Điền Password
+        Locator passInput = page.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX,
+                new Page.GetByRoleOptions().setName("Mật khẩu *")).first();
+        passInput.click(new Locator.ClickOptions().setForce(true));
+        passInput.fill(password);
+
+        // Bước 4: Nhấn Enter để submit (Theo đúng flow Record của bạn)
+        passInput.press("Enter");
+
+        // Chờ mất Popup đăng nhập đi (nghĩa là login thành công)
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+        page.waitForTimeout(1500); // Đợi UI chuyển trạng thái Đã đăng nhập
+    }
+
+
+    public void quickAddToCart(String keyword) {
+        // 1. Tìm kiếm
+        search(keyword);
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+        page.waitForTimeout(2000);
+
+        // 2. Click vào sản phẩm đầu tiên
+        Locator firstProduct = page.locator(".item:has(a[href*='/product/']), .product-item:has(a[href*='/product/'])").first();
+        firstProduct.click(new Locator.ClickOptions().setForce(true));
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+
+        // 3. Click nút Thêm vào giỏ hàng
+        page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Thêm vào giỏ hàng")).first().click();
+        page.waitForTimeout(1500); // Chờ popup thành công hiện lên
+
+        // 4. Click thẳng vào icon Giỏ Hàng (Cart) theo đúng Record
+        page.getByRole(com.microsoft.playwright.options.AriaRole.LINK,
+                new Page.GetByRoleOptions().setName("cart")).first().click();
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+    }
+
+
+    public void clearCart() {
+        System.out.println("   -> [Cleanup] Đang dọn dẹp giỏ hàng...");
+        try {
+            page.navigate("https://www.lottemart.vn/cart");
+            page.waitForLoadState(com.microsoft.playwright.options.LoadState.DOMCONTENTLOADED);
+
+            // Xóa Modal nếu có
+            page.evaluate("document.querySelectorAll('.modal, .modal-backdrop').forEach(e => e.remove()); document.body.classList.remove('modal-open');");
+
+            // Cách nhanh nhất Lotte Mart: Nút "Xóa tất cả" hoặc click icon thùng rác từng món
+            Locator deleteAllBtn = page.getByText("Xóa", new Page.GetByTextOptions().setExact(true)).first();
+
+            if (deleteAllBtn.isVisible()) {
+                deleteAllBtn.click(new Locator.ClickOptions().setForce(true));
+                // Xác nhận xóa trên popup (nếu có)
+                Locator confirmBtn = page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Đồng ý")).first();
+                if (confirmBtn.isVisible()) confirmBtn.click(new Locator.ClickOptions().setForce(true));
+
+                page.waitForTimeout(2000); // Chờ API xóa xong
+                System.out.println("   -> [Cleanup] Đã xóa sạch giỏ hàng.");
+            } else {
+                System.out.println("   -> [Cleanup] Giỏ hàng đã trống sẵn.");
+            }
+        } catch (Exception e) {
+            System.out.println("   -> [Cleanup] Lỗi khi dọn dẹp giỏ hàng, bỏ qua.");
+        }
     }
 
 
