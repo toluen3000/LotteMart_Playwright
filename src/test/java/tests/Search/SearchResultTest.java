@@ -1,5 +1,6 @@
 package tests.Search;
 
+import base.BaseTest;
 import com.microsoft.playwright.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -7,28 +8,32 @@ import pages.Details.HomePage;
 import pages.Details.SearchPage;
 import java.util.List;
 
-public class SearchResultTest {
+public class SearchResultTest extends BaseTest {
 
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext context;
-    private Page page;
+//    private Playwright playwright;
+//    private Browser browser;
+//    private BrowserContext context;
+//    private Page page;
     private HomePage homePage;
     private SearchPage searchPage;
 
     @BeforeMethod
-    public void setUp() {
-        playwright = Playwright.create();
-        browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(false));
-        context = browser.newContext();
-        page = context.newPage();
+    public void initPageObjects() {
+//        playwright = Playwright.create();
+//        browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(false));
+//        context = browser.newContext();
+//        page = context.newPage();
 
         homePage = new HomePage(page);
         searchPage = new SearchPage(page);
 
         // Chuẩn bị tiền đề: Vào web và tìm kiếm chữ "bánh" để có danh sách sản phẩm
         page.navigate("https://www.lottemart.vn/");
-        homePage.handleStartupPopups();
+        try {
+            homePage.handleStartupPopups();
+        } catch (Exception e) {
+            System.out.println("Không thấy Popup xuất hiện, bỏ qua bước tắt popup!");
+        }
         homePage.search("bánh");
 
         // Chờ kết quả load xong
@@ -36,7 +41,7 @@ public class SearchResultTest {
     }
 
     @Test(description = "SR_09 - Áp dụng Bộ lọc giá hợp lệ")
-    public void testValidPriceFilter() {
+    public void SR_09_testValidPriceFilter() {
         System.out.println("BƯỚC 1: Lọc giá từ 100,000đ đến 300,000đ");
         String currentUrl = page.url();
 
@@ -68,7 +73,7 @@ public class SearchResultTest {
     }
 
     @Test(description = "SR_10 - Bộ lọc giá không hợp lệ (Min > Max)")
-    public void testInvalidPriceFilterMinGreaterThanMax() {
+    public void SR_10_testInvalidPriceFilterMinGreaterThanMax() {
         System.out.println("BƯỚC 1: Lọc giá lỗi Min (500k) > Max (200k)");
         String currentUrl = page.url();
 
@@ -89,7 +94,7 @@ public class SearchResultTest {
     }
 
     @Test(description = "SR_11 - Nhập số âm vào Bộ lọc giá")
-    public void testNegativePriceFilter() {
+    public void SR_11_testNegativePriceFilter() {
         System.out.println("BƯỚC 1: Cố tình gõ số âm (-50000) vào ô Min");
         searchPage.applyPriceFilter("-50000", "");
 
@@ -102,7 +107,7 @@ public class SearchResultTest {
     }
 
     @Test(description = "SR_12 - Sắp xếp giá từ thấp đến cao")
-    public void testSortPriceLowToHigh() {
+    public void SR_12_testSortPriceLowToHigh() {
         System.out.println("BƯỚC 1: Chọn Sort 'Giá từ thấp đến cao'");
         searchPage.selectSortOption("thấp đến cao");
 
@@ -118,7 +123,7 @@ public class SearchResultTest {
     }
 
     @Test(description = "SR_13 - Áp dụng Lọc theo Danh mục (Category Filter)")
-    public void testCategoryFilter() {
+    public void SR_13_testCategoryFilter() {
         System.out.println("BƯỚC 1: Chọn danh mục 'Bánh Kẹo'");
         searchPage.applyCategoryFilter("Bánh Kẹo");
 
@@ -134,7 +139,7 @@ public class SearchResultTest {
     }
 
     @Test(description = "SR_20 - Kết hợp Filter và Sort (Mô phỏng End-to-End User)")
-    public void testCombinedFiltersAndSort() {
+    public void SR_20_testCombinedFiltersAndSort() {
         System.out.println("BƯỚC 1: Lọc danh mục 'Bánh Kẹo'");
         searchPage.applyCategoryFilter("Bánh Kẹo");
         page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
@@ -171,11 +176,11 @@ public class SearchResultTest {
         System.out.println("SR_20 PASS: Kết hợp Danh Mục + Giá + Sort chạy hoàn hảo!");
     }
 
-    @AfterMethod
-    public void tearDown() {
-        page.close();
-        context.close();
-        browser.close();
-        playwright.close();
-    }
+//    @AfterMethod
+//    public void tearDown() {
+//        page.close();
+//        context.close();
+//        browser.close();
+//        playwright.close();
+//    }
 }

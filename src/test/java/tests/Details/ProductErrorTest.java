@@ -1,5 +1,6 @@
 package tests.Details;
 
+import base.BaseTest;
 import com.microsoft.playwright.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -9,37 +10,34 @@ import pages.Details.SearchPage;
 
 import static utils.StringUtils.normalizeText;
 
-public class ProductErrorTest {
+public class ProductErrorTest extends BaseTest {
 
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext context;
-    private Page page;
+//    private Playwright playwright;
+//    private Browser browser;
+//    private BrowserContext context;
+//    private Page page;
 
     private HomePage homePage;
     private SearchPage searchPage;
     private ProductDetailsPage detailsPage;
 
     @BeforeMethod
-    public void setUp() {
-        playwright = Playwright.create();
-        browser = playwright.firefox().launch(
-                new BrowserType.LaunchOptions().setHeadless(false)
-        );
-        context = browser.newContext();
-        page = context.newPage();
-
+    public void initPageObjects() {
         homePage = new HomePage(page);
         searchPage = new SearchPage(page);
         detailsPage = new ProductDetailsPage(page);
 
-        // Khởi tạo ở trang chủ để ăn cookie/session trước
         page.navigate("https://www.lottemart.vn/");
-        homePage.handleStartupPopups();
+
+        try {
+            homePage.handleStartupPopups();
+        } catch (Exception e) {
+            System.out.println("⏩ Không thấy Popup xuất hiện, bỏ qua bước tắt popup!");
+        }
     }
 
     @Test(description = "DT_10 - Xử lý lỗi Không tìm thấy sản phẩm (SKU sai)")
-    public void testProductNotFoundHandling() {
+    public void DT_10_testProductNotFoundHandling() {
         // 1. Chuẩn bị URL chứa SKU rác (thêm số 9 vào cuối để làm sai SKU thật)
         String invalidUrl = "https://www.lottemart.vn/vi-bdh/product/89360132324169";
 
@@ -48,9 +46,6 @@ public class ProductErrorTest {
 
         // 2. Kiểm chứng trang lỗi 404 / Not Found
         System.out.println("BƯỚC 2: Kiểm tra giao diện báo lỗi");
-
-        // Trên thực tế, có 2 kịch bản xử lý lỗi phổ biến của E-commerce:
-        // Kịch bản A: Hiển thị giao diện 404 (Sản phẩm không tìm thấy)
 
         boolean isErrorPage = detailsPage.isNotFoundErrorDisplayed();
         boolean isRedirectedToHome = detailsPage.getCurrentUrl().equals("https://www.lottemart.vn/vi-bdh/");
@@ -73,7 +68,7 @@ public class ProductErrorTest {
     }
 
     @Test(description = "DT_15 - Kiểm tra tính toàn vẹn dữ liệu khi Refresh (F5) trang")
-    public void testDataIntegrityOnRefresh() {
+    public void DT_15_testDataIntegrityOnRefresh() {
         String targetProductName = "Vây Cá Hồi Tẩm Gia Vị SG Food 500G";
 
         System.out.println("BƯỚC 1: Tìm và truy cập một sản phẩm hợp lệ");
@@ -119,11 +114,11 @@ public class ProductErrorTest {
         System.out.println("Test Case DT_15: PASS! Dữ liệu web rất bền bỉ.");
     }
 
-    @AfterMethod
-    public void tearDown() {
-        page.close();
-        context.close();
-        browser.close();
-        playwright.close();
-    }
+//    @AfterMethod
+//    public void tearDown() {
+//        page.close();
+//        context.close();
+//        browser.close();
+//        playwright.close();
+//    }
 }

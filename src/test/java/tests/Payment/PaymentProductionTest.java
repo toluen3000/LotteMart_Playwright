@@ -1,5 +1,6 @@
 package tests.Payment;
 
+import base.BaseTest;
 import com.google.gson.JsonObject;
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.WaitForSelectorState;
@@ -11,26 +12,22 @@ import pages.Details.HomePage;
 import pages.Payment.PaymentPage;
 import utils.JsonUtils;
 
-public class PaymentProductionTest {
+public class PaymentProductionTest extends BaseTest {
 
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext context;
-    private Page page;
+//    private Playwright playwright;
+//    private Browser browser;
+//    private BrowserContext context;
+//    private Page page;
     private HomePage homePage;
     private PaymentPage paymentPage;
 
 
     @BeforeMethod
-    public void setUp() {
-        playwright = Playwright.create();
-        browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(false));
-        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1280, 720));
-        page = context.newPage();
+    public void initPageObjects() {
         homePage = new HomePage(page);
         paymentPage = new PaymentPage(page);
+//        checkoutPage = new CheckoutPage(page);
     }
-
 
 
     private void loginAndNavigateToCheckout(String userKey) {
@@ -105,14 +102,7 @@ public class PaymentProductionTest {
             Assert.fail("LỖI: Timeout! VNPAY không chuyển hướng lại về Lotte Mart sau khi nhấn Hủy.");
         }
 
-        System.out.println("✅ E2E_04 PASS: Luồng Hủy giao dịch tích hợp VNPAY hoạt động chính xác.");
+        System.out.println("E2E_04 PASS: Luồng Hủy giao dịch tích hợp VNPAY hoạt động chính xác.");
     }
 
-    @org.testng.annotations.AfterMethod
-    public void tearDown() {
-
-        if (context != null) context.close();
-        if (browser != null) browser.close();
-        if (playwright != null) playwright.close();
-    }
 }

@@ -1,15 +1,49 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="LotteMart Test Suite">
 
-    <test name="Auth Tests">
+<!--    <test name="Auth Tests">-->
+<!--        <classes>-->
+<!--            <class name="tests.Login.LoginTest"/>-->
+<!--        </classes>-->
+<!--    </test>-->
+
+<!--    <test name="Product Details Tests">-->
+<!--        <classes>-->
+<!--            <class name="tests.Details.ProductDetailsTest"/>-->
+<!--        </classes>-->
+<!--    </test>-->
+
+    <!-- MODULE CHI TIẾT SẢN PHẨM -->
+    <test name="Product Details Module">
         <classes>
-            <class name="tests.Login.LoginTest"/>
+            <class name="tests.Details.ProductDetailsTest"/>
+            <class name="tests.Details.ProductErrorTest"/>
+            <class name="tests.Details.ProductNavigationTest"/>
+            <class name="tests.Details.ProductQuantityTest"/>
+            <class name="tests.Details.ProductUIComponentsTest"/>
         </classes>
     </test>
 
-    <test name="Product Details Tests">
+    <!-- MODULE TÌM KIẾM -->
+    <test name="Search Module">
         <classes>
-            <class name="tests.Details.ProductDetailsTest"/>
+            <class name="tests.Search.SearchInputValidationTest"/>
+            <class name="tests.Search.SearchResultTest"/>
+        </classes>
+    </test>
+
+    <!-- MODULE ĐẶT HÀNG -->
+    <test name="Checkout Module">
+        <classes>
+            <class name="tests.Checkout.CheckoutBasicTest"/>
+            <class name="tests.Checkout.DeliveryPaymentTest"/>
+        </classes>
+    </test>
+
+    <!-- MODULE THANH TOÁN -->
+    <test name="Payment Module">
+        <classes>
+            <class name="tests.Payment.PaymentProductionTest"/>
         </classes>
     </test>
 

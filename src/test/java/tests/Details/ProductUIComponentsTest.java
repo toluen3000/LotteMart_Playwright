@@ -1,5 +1,6 @@
 package tests.Details;
 
+import base.BaseTest;
 import com.microsoft.playwright.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -9,37 +10,34 @@ import pages.Details.SearchPage;
 
 import java.util.List;
 
-public class ProductUIComponentsTest {
+public class ProductUIComponentsTest extends BaseTest {
 
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext context;
-    private Page page;
+//    private Playwright playwright;
+//    private Browser browser;
+//    private BrowserContext context;
+//    private Page page;
 
     private HomePage homePage;
     private SearchPage searchPage;
     private ProductDetailsPage detailsPage;
 
     @BeforeMethod
-    public void setUp() {
-        playwright = Playwright.create();
-        browser = playwright.firefox().launch(
-                new BrowserType.LaunchOptions().setHeadless(false)
-        );
-        context = browser.newContext();
-        page = context.newPage();
-
+    public void initPageObjects() {
         homePage = new HomePage(page);
         searchPage = new SearchPage(page);
         detailsPage = new ProductDetailsPage(page);
 
-        // Khởi tạo trang chủ để xử lý popup
         page.navigate("https://www.lottemart.vn/");
-        homePage.handleStartupPopups();
+
+        try {
+            homePage.handleStartupPopups();
+        } catch (Exception e) {
+            System.out.println("Không thấy Popup xuất hiện, bỏ qua bước tắt popup!");
+        }
     }
 
     @Test(description = "DT_07 - Kiểm tra khu vực Gợi ý sản phẩm liên quan (Slider UI)")
-    public void testRelatedProductsUI() {
+    public void DT_07_testRelatedProductsUI() {
         String keyword = "bò";
         System.out.println("BƯỚC 1: Tìm kiếm từ khóa: " + keyword);
         homePage.search(keyword);
@@ -61,7 +59,7 @@ public class ProductUIComponentsTest {
     }
 
     @Test(description = "DT_19 - Kiểm tra hiển thị khi Ảnh lỗi (404)")
-    public void testBrokenImageFallbackUI() {
+    public void DT_19_testBrokenImageFallbackUI() {
         System.out.println("BƯỚC 1: Truy cập một sản phẩm bất kỳ");
         homePage.search("xúc xích");
         searchPage.clickFirstProductAndGetDetails();
@@ -94,7 +92,7 @@ public class ProductUIComponentsTest {
     }
 
     @Test(description = "DT_20 - Kiểm tra hiển thị Giá với giá trị siêu lớn hoặc 0")
-    public void testEdgeCasePriceDisplay() {
+    public void DT_20_testEdgeCasePriceDisplay() {
         System.out.println("BƯỚC 1: Truy cập sản phẩm");
         homePage.search("xúc xích");
         searchPage.clickFirstProductAndGetDetails();
@@ -133,12 +131,12 @@ public class ProductUIComponentsTest {
 
         System.out.println("DT_20 PASS: Giao diện đàn hồi rất tốt với giá tiền dị biệt.");
     }
-
-    @AfterMethod
-    public void tearDown() {
-        page.close();
-        context.close();
-        browser.close();
-        playwright.close();
-    }
+//
+//    @AfterMethod
+//    public void tearDown() {
+//        page.close();
+//        context.close();
+//        browser.close();
+//        playwright.close();
+//    }
 }

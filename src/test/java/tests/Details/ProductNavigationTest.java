@@ -1,5 +1,6 @@
 package tests.Details;
 
+import base.BaseTest;
 import com.microsoft.playwright.*;
 import dto.ProductData;
 import org.testng.Assert;
@@ -14,33 +15,32 @@ import java.util.List;
 import static utils.StringUtils.normalizePrice;
 import static utils.StringUtils.normalizeText;
 
-public class ProductNavigationTest {
+public class ProductNavigationTest extends BaseTest {
 
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext context;
-    private Page page;
+//    private Playwright playwright;
+//    private Browser browser;
+//    private BrowserContext context;
+//    private Page page;
 
     private HomePage homePage;
     private SearchPage searchPage;
     private ProductDetailsPage detailsPage;
 
     @BeforeMethod
-    public void setUp() {
-        playwright = Playwright.create();
-        browser = playwright.firefox().launch(
-                new BrowserType.LaunchOptions().setHeadless(false)
-        );
-        context = browser.newContext();
-        page = context.newPage();
-
+    public void initPageObjects() {
+        // Biến 'page' đã được BaseTest lo liệu và truyền sang
         homePage = new HomePage(page);
         searchPage = new SearchPage(page);
         detailsPage = new ProductDetailsPage(page);
 
         page.navigate("https://www.lottemart.vn/");
-        // Xử lý ngay popup trước khi cuộn tìm sản phẩm
-        homePage.handleStartupPopups();
+
+        // Bọc try-catch chống lỗi khi popup lười hiển thị
+        try {
+            homePage.handleStartupPopups();
+        } catch (Exception e) {
+            System.out.println("⏩ Không thấy Popup xuất hiện, bỏ qua bước tắt popup!");
+        }
     }
 
     @DataProvider(name = "navData")
@@ -51,19 +51,19 @@ public class ProductNavigationTest {
     }
 
     @Test(description = "DT_12 - Load đúng sản phẩm theo SKU qua URL")
-    public void testProductLoadBySku() {
+    public void DT_12_testProductLoadBySku() {
         // Data chuẩn bị theo Test Case
         String targetProductName = "Vây Cá Hồi Tẩm Gia Vị SG Food 500G";
         String expectedSku = "8936013232416";
 
-        System.out.println("🔍 BƯỚC 1: Tìm đích danh sản phẩm cần test...");
+        System.out.println("BƯỚC 1: Tìm đích danh sản phẩm cần test...");
         homePage.search(targetProductName);
 
         // BƯỚC 2: Click vào kết quả tìm kiếm đầu tiên
         searchPage.clickFirstProductAndGetDetails();
         detailsPage.waitForPageLoaded();
 
-        System.out.println("✅ BƯỚC 3: Đang kiểm chứng dữ liệu trang chi tiết...");
+        System.out.println("BƯỚC 3: Đang kiểm chứng dữ liệu trang chi tiết...");
 
         // 3.1 ASSERT URL chứa SKU
         String actualUrl = detailsPage.getCurrentUrl();
@@ -97,7 +97,7 @@ public class ProductNavigationTest {
     }
 
     @Test(description = "DT_16 - Home → Product Detail")
-    public void testNavigateFromHome() {
+    public void DT_16_testNavigateFromHome() {
 
         String[] productDetails = homePage.clickFirstProductAndGetDetails();
         // lay product dau tien trong list
@@ -139,7 +139,7 @@ public class ProductNavigationTest {
 
 
     @Test(description = "DT_17 - Search → Product Detail")
-    public void testNavigateFromSearch() {
+    public void DT_17_testNavigateFromSearch() {
         // Lấy keyword từ JSON hoặc dùng chuỗi mặc định
         String keyword = "bò";
 
@@ -177,7 +177,7 @@ public class ProductNavigationTest {
     }
 
     @Test(description = "DT_18 - Related Product → Product Detail")
-    public void testRelatedProductsRelevance() {
+    public void DT_18_testRelatedProductsRelevance() {
         //Search và vào sản phẩm đầu tiên
         String keyword = "xúc xích";
         System.out.println("BƯỚC 1: Tìm kiếm: " + keyword);
@@ -213,11 +213,11 @@ public class ProductNavigationTest {
 
 
 
-    @AfterMethod
-    public void tearDown() {
-        page.close();
-        context.close();
-        browser.close();
-        playwright.close();
-    }
+//    @AfterMethod
+//    public void tearDown() {
+//        page.close();
+//        context.close();
+//        browser.close();
+//        playwright.close();
+//    }
 }

@@ -37,6 +37,15 @@ public class CheckoutPage {
         return parseCurrency(total.innerText());
     }
 
+    public int getFinalTotal3() {
+        // Tìm element chứa chữ "Thành tiền", sau đó nhảy sang phần tử anh em (chứa giá tiền)
+        Locator totalLocator = page.locator("text=Thành tiền").locator("xpath=following-sibling::*").first();
+
+        String rawText = totalLocator.innerText();
+        String numberOnly = rawText.replaceAll("[^0-9]", "");
+        return Integer.parseInt(numberOnly);
+    }
+
     public void selectStorePickup() {
         page.locator("label:has-text('Nhận hàng tại cửa hàng')").click(new Locator.ClickOptions().setForce(true));
         page.waitForTimeout(2000);

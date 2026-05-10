@@ -1,5 +1,6 @@
 package tests.Checkout;
 
+import base.BaseTest;
 import com.google.gson.JsonObject;
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.WaitForSelectorState;
@@ -7,6 +8,7 @@ import org.testng.Assert;
 import org.testng.annotations.*;
 import pages.Checkout.CheckoutPage;
 import pages.Details.HomePage;
+import pages.Details.ProductDetailsPage;
 import utils.JsonUtils;
 
 import java.time.LocalDateTime;
@@ -14,20 +16,26 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DeliveryPaymentTest {
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext context;
-    private Page page;
+public class DeliveryPaymentTest extends BaseTest {
+//    private Playwright playwright;
+//    private Browser browser;
+//    private BrowserContext context;
+//    private Page page;
     private HomePage homePage;
     private CheckoutPage checkoutPage;
 
+//    @BeforeMethod
+//    public void setUp() {
+//        playwright = Playwright.create();
+//        browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(false));
+//        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1280, 720));
+//        page = context.newPage();
+//        homePage = new HomePage(page);
+//        checkoutPage = new CheckoutPage(page);
+//    }
+
     @BeforeMethod
-    public void setUp() {
-        playwright = Playwright.create();
-        browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(false));
-        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1280, 720));
-        page = context.newPage();
+    public void initPageObject() {
         homePage = new HomePage(page);
         checkoutPage = new CheckoutPage(page);
     }
@@ -78,7 +86,7 @@ public class DeliveryPaymentTest {
     }
 
     @Test(description = "OD_04 - Tính toán chính xác Tổng tiền mặc định")
-    public void testDefaultInvoiceCalculation() {
+    public void OD_04_testDefaultInvoiceCalculation() {
         System.out.println("--- CHẠY TEST OD_04 ---");
         loginAndNavigateToCheckout("valid_user");
 
@@ -92,7 +100,7 @@ public class DeliveryPaymentTest {
     }
 
     @Test(description = "OD_05 - Cập nhật Tổng tiền khi đổi phương thức giao hàng sang Nhận tại cửa hàng")
-    public void testUpdateTotalOnStorePickup() {
+    public void OD_05_testUpdateTotalOnStorePickup() {
         System.out.println("--- CHẠY TEST OD_05 ---");
         loginAndNavigateToCheckout("valid_user");
 
@@ -116,7 +124,7 @@ public class DeliveryPaymentTest {
     }
 
     @Test(description = "OD_07 - Ràng buộc phương thức thanh toán khi Nhận tại cửa hàng")
-    public void testPaymentConstraintOnStorePickup() {
+    public void OD_07_testPaymentConstraintOnStorePickup() {
         System.out.println("--- CHẠY TEST OD_07 ---");
         loginAndNavigateToCheckout("valid_user");
 
@@ -130,7 +138,7 @@ public class DeliveryPaymentTest {
     }
 
     @Test(description = "OD_06 - Kiểm tra có phí ship cho đơn hàng dưới 200k khi đổi lại phương thức giao hàng")
-    public void testUpdateTotalOnStandardDelivery() {
+    public void OD_06_testUpdateTotalOnStandardDelivery() {
         System.out.println("--- CHẠY TEST OD_06 ---");
         loginAndNavigateToCheckout("valid_user");
 
@@ -171,7 +179,7 @@ public class DeliveryPaymentTest {
     }
 
     @Test(description = "OD_08 - Logic hiển thị form Xuất hóa đơn VAT")
-    public void testVATFormToggleLogic() {
+    public void OD_08_testVATFormToggleLogic() {
         System.out.println("--- CHẠY TEST OD_08 ---");
         loginAndNavigateToCheckout("valid_user");
 
@@ -194,7 +202,7 @@ public class DeliveryPaymentTest {
     }
 
     @Test(description = "OD_09 - Bỏ trống dữ liệu bắt buộc của hóa đơn VAT")
-    public void testRequiredFieldsVAT() {
+    public void OD_09_testRequiredFieldsVAT() {
         System.out.println("--- CHẠY TEST OD_09 ---");
         loginAndNavigateToCheckout("valid_user");
 
@@ -212,7 +220,7 @@ public class DeliveryPaymentTest {
     }
 
     @Test(description = "OD_15 - Thời gian nhận hàng dự kiến là tương lai")
-    public void testFutureDeliveryTimeSlots() {
+    public void OD_15_testFutureDeliveryTimeSlots() {
         System.out.println("--- CHẠY TEST OD_15 ---");
         loginAndNavigateToCheckout("valid_user");
 
@@ -277,7 +285,7 @@ public class DeliveryPaymentTest {
 
 
     @Test(description = "OD_17 - Kiểm tra giá trị mặc định phương thức giao hàng & thanh toán")
-    public void testDefaultSelections() {
+    public void OD_17_testDefaultSelections() {
         System.out.println("--- CHẠY TEST OD_17 ---");
         loginAndNavigateToCheckout("valid_user");
         page.waitForTimeout(2000); // Chờ UI load xong trạng thái
@@ -316,7 +324,7 @@ public class DeliveryPaymentTest {
 
 
     @Test(description = "OD_14 - Ngăn chặn làm mới trang tạo duplicate đơn hàng")
-    public void testPreventDuplicateOrderOnReload() {
+    public void OD_14_testPreventDuplicateOrderOnReload() {
         System.out.println("--- CHẠY TEST OD_14 ---");
         loginAndNavigateToCheckout("valid_user");
 
@@ -505,7 +513,7 @@ public class DeliveryPaymentTest {
     }
 
     @Test(description = "E2E_03 (OD_13 + PM_03)  Double Click prevention")
-    public void testPreventDoubleClickOrder() {
+    public void E2E_03_PM03_testPreventDoubleClickOrder() {
         System.out.println("--- CHẠY TEST OD_13 ---");
         loginAndNavigateToCheckout("valid_user");
 
@@ -553,12 +561,12 @@ public class DeliveryPaymentTest {
 
 
 
-    @AfterMethod
-    public void tearDown() {
-
-        if (page != null) page.close();
-        if (context != null) context.close();
-        if (browser != null) browser.close();
-        if (playwright != null) playwright.close();
-    }
+//    @AfterMethod
+//    public void tearDown() {
+//
+//        if (page != null) page.close();
+//        if (context != null) context.close();
+//        if (browser != null) browser.close();
+//        if (playwright != null) playwright.close();
+//    }
 }

@@ -34,15 +34,15 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_01 - Tìm kiếm với từ khóa hợp lệ và có kết quả")
-    public void testValidSearchWithResults() {
+    public void SR_01_testValidSearchWithResults() {
         String keyword = "Dẻ sườn bò";
 
         System.out.println("BƯỚC 1: Tìm kiếm từ khóa: " + keyword);
         homePage.search(keyword);
 
         System.out.println("BƯỚC 2: Kiểm tra kết quả hiển thị");
+        page.waitForTimeout(2000);
         int productCount = searchPage.getProductCount();
-
         Assert.assertTrue(productCount > 0, "Lỗi: Tìm '" + keyword + "' mà không ra kết quả nào!");
         Assert.assertTrue(page.url().contains("q="), "Lỗi: Không chuyển hướng đến trang kết quả tìm kiếm!");
 
@@ -50,7 +50,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_02 - Tìm kiếm với từ khóa hợp lệ nhưng KHÔNG CÓ kết quả")
-    public void testValidSearchWithNoResults() {
+    public void SR_02_testValidSearchWithNoResults() {
         String keyword = "Điện thoại iPhone 20";
 
         System.out.println("BƯỚC 1: Tìm kiếm từ khóa không có thật: " + keyword);
@@ -59,7 +59,7 @@ public class SearchInputValidationTest {
         System.out.println("BƯỚC 2: Kiểm tra thông báo không tìm thấy");
         String noResultMsg = searchPage.getNoResultMessage().toLowerCase();
 
-        // (Sửa lại dòng Assert trong hàm testValidSearchWithNoResults)
+
         Assert.assertTrue(
                 noResultMsg.contains("rất tiếc"),
                 "Lỗi: Không hiển thị đúng thông báo 'Rất tiếc' khi không có kết quả!"
@@ -67,7 +67,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_03 - Hiển thị gợi ý tự động")
-    public void testAutoSuggestionDisplay() {
+    public void SR_03_testAutoSuggestionDisplay() {
         String shortKeyword = "vinamilk      ";
 
         System.out.println("BƯỚC 1: Gõ chậm từ khóa: '" + shortKeyword + "'");
@@ -97,7 +97,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_04 - Bỏ trống từ khóa tìm kiếm và nhấn Enter")
-    public void testEmptySearchHandling() {
+    public void SR_04_testEmptySearchHandling() {
         String currentUrl = page.url();
 
         System.out.println("BƯỚC 1: Bỏ trống thanh tìm kiếm và Enter");
@@ -116,7 +116,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_05 - Tìm kiếm chỉ với khoảng trắng")
-    public void testSearchWithOnlySpaces() {
+    public void SR_05_testSearchWithOnlySpaces() {
         String currentUrl = page.url();
         String spaces = "     "; // 5 khoảng trắng
 
@@ -130,7 +130,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_06 - Tìm kiếm với từ khóa quá ngắn (1 ký tự)")
-    public void testSearchWithTooShortKeyword() {
+    public void SR_06_testSearchWithTooShortKeyword() {
         String oneChar = "a";
 
         System.out.println("BƯỚC 1: Nhập 1 ký tự ('" + oneChar + "') và Enter");
@@ -160,7 +160,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_07 - Kiểm tra biên: 255 ký tự (Hợp lệ)")
-    public void testSearchBoundary255Chars() {
+    public void SR_07_testSearchBoundary255Chars() {
         // chuỗi 255 chữ A
         String longKeyword = homePage.generateLongString(255);
 
@@ -184,7 +184,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_08 - Kiểm tra biên: Vượt quá 255 ký tự (Hệ thống không giới hạn Input)")
-    public void testSearchBoundary256Chars() {
+    public void SR_08_testSearchBoundary256Chars() {
         String overLimitKeyword = homePage.generateLongString(256);
 
         System.out.println("BƯỚC 1: Nhập chuỗi 256 ký tự");
@@ -201,7 +201,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_16 - Tìm kiếm không phân biệt chữ hoa/thường")
-    public void testSearchCaseInsensitive() {
+    public void SR_16_testSearchCaseInsensitive() {
         String keyword = "GẠO ST25"; // Viết hoa toàn bộ
 
         System.out.println("BƯỚC 1: Tìm kiếm với từ khóa in hoa: " + keyword);
@@ -221,7 +221,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_17 - Tìm kiếm có dấu và không dấu")
-    public void testSearchWithoutAccents() {
+    public void SR_17_testSearchWithoutAccents() {
         String keyword = "gao st25";
 
         System.out.println("BƯỚC 1: Tìm kiếm từ khóa không dấu: " + keyword);
@@ -242,7 +242,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_18 - Tìm kiếm với ký tự đặc biệt")
-    public void testSearchWithSpecialChars() {
+    public void SR_18_testSearchWithSpecialChars() {
         String keyword = "@@@###";
 
         System.out.println("BƯỚC 1: Tìm kiếm toàn ký tự đặc biệt: " + keyword);
@@ -263,7 +263,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_19 - Tìm kiếm với khoảng trắng đầu/cuối (Trim)")
-    public void testSearchWithSurroundingSpaces() {
+    public void SR_19_testSearchWithSurroundingSpaces() {
         String rawKeyword = "   gạo ST25   ";
         String expectedTrimmedKeyword = "gạo ST25";
 
@@ -297,7 +297,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_15 - Tìm kiếm bằng mã SKU")
-    public void testSearchBySKU() {
+    public void SR_15_testSearchBySKU() {
         // Lấy một mã SKU giả lập (hoặc mã thật nếu bạn có từ DB Lotte Mart)
         String skuCode = "8934588012110";
 
@@ -318,7 +318,7 @@ public class SearchInputValidationTest {
     }
 
     @Test(description = "SR_21 - Tìm kiếm và chọn từ gợi ý đầu tiên (Dữ liệu động)")
-    public void testSearchAndSelectSuggestion() {
+    public void SR_21_testSearchAndSelectSuggestion() {
         String shortKeyword = "gao";
 
         System.out.println("BƯỚC 1: Gõ '" + shortKeyword + "' và hệ thống tự động chọn gợi ý đầu tiên");
@@ -355,7 +355,7 @@ public class SearchInputValidationTest {
 
 
     @Test(description = "SR_14 - Xử lý ngoại lệ khi mất kết nối Cơ sở dữ liệu (Mock 500 Error)")
-    public void testDatabaseConnectionError() {
+    public void SR_14_testDatabaseConnectionError() {
         System.out.println("BƯỚC 1: Giả lập ngắt kết nối Database (Mock API trả về lỗi 500)");
 
         // Sử dụng quyền năng của Playwright để chặn mọi request tìm kiếm (chứa "q=")
@@ -401,7 +401,7 @@ public class SearchInputValidationTest {
         Assert.assertFalse(isCrashed, "Lỗi Nghiêm Trọng: Hệ thống bị Crash (trắng trang hoặc lộ code backend) khi sập DB!");
         Assert.assertTrue(hasFriendlyError, "Lỗi: Hệ thống bắt được lỗi nhưng không hiển thị thông báo thân thiện cho user!");
 
-        System.out.println("✅ SR_14 PASS: Hệ thống xử lý Exception rất tốt, UI không bị Crash.");
+        System.out.println("SR_14 PASS: Hệ thống xử lý Exception rất tốt, UI không bị Crash.");
 
         // DỌN DẸP BẮT BUỘC: Phải gỡ bỏ lệnh chặn mạng để không làm Fail các test case chạy sau nó
         page.unroute("**/*q=*");

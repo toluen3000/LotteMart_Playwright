@@ -1,5 +1,6 @@
 package tests.Details;
 
+import base.BaseTest;
 import com.microsoft.playwright.*;
 import dto.ProductData;
 import org.testng.Assert;
@@ -7,27 +8,29 @@ import org.testng.annotations.*;
 import pages.Details.ProductDetailsPage;
 import utils.JsonReader;
 
-public class ProductDetailsTest {
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext context;
-    private Page page;
+public class ProductDetailsTest extends BaseTest {
+//    private Playwright playwright;
+//    private Browser browser;
+//    private BrowserContext context;
+//    private Page page;
     private ProductDetailsPage detailsPage;
 
 
+//    @BeforeMethod
+//    public void setUp() {
+//        playwright = Playwright.create();
+//        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+//        context = browser.newContext();
+//        page = context.newPage();
+//        detailsPage = new ProductDetailsPage(page);
+//    }
+
     @BeforeMethod
-    public void setUp() {
-        playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
-        context = browser.newContext();
-        page = context.newPage();
+    public void initPageObject() {
+        // Biến 'page' lúc này đã có sẵn nhờ kế thừa từ BaseTest
         detailsPage = new ProductDetailsPage(page);
     }
 
-    /**
-     * DataProvider cung cấp dữ liệu cho 4 Test Cases (DT_01 -> DT_04)
-     * Cấu trúc mảng: { TestCaseID, ProductURL, ExpectedName, ExpectedPrice, HasReview(boolean), ExpectedReviewText }
-     */
     @DataProvider(name = "productData")
     public Object[][] getProductData() {
         String path = "testdata/Details/product_data.json";
@@ -92,11 +95,11 @@ public class ProductDetailsTest {
         );
     }
 
-    @AfterMethod
-    public void tearDown() {
-        page.close();
-        context.close();
-        browser.close();
-        playwright.close();
-    }
+//    @AfterMethod
+//    public void tearDown() {
+//
+//        context.close();
+//
+//        playwright.close();
+//    }
 }
