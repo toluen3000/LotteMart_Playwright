@@ -58,9 +58,6 @@ public class CheckoutBasicTest extends BaseTest {
         page.waitForTimeout(2000);
     }
 
-    // =========================================================
-    // CÁC TEST CASES OD (ORDER DATA)
-    // =========================================================
 
     @Test(description = "OD_01 - Tự động điền địa chỉ mặc định (Có sẵn địa chỉ)")
     public void OD_01_testAutoFillAddress() {

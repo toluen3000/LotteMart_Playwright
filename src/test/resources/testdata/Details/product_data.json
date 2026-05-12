@@ -5,13 +5,13 @@
     "expectedName": "Ba Rọi Heo Dày 2cm 365 Fresh 350G",
     "expectedPrice": "76.650 ₫",
     "expectedHasReview": true,
-    "expectedReviewText": "4.7 (5 Đánh giá)"
+    "expectedReviewText": "4.8 (6 Đánh giá)"
   },
   {
     "testCaseId": "DT_03",
-    "url": "https://www.lottemart.vn/vi-bdh/product/gs-mut-dau-good-today-690g-8801214507741-p236704",
-    "expectedName": "Mứt Dâu Good Today 690G",
-    "expectedPrice": "139.000 ₫",
+    "url": "https://www.lottemart.vn/vi-bdh/product/mut-dau-golden-farm-14g-x-20-hop-8935118301638-p166",
+    "expectedName": "Mứt Dâu Golden Farm 14G x 20 Hộp",
+    "expectedPrice": "51.000 ₫",
     "expectedHasReview": false,
     "expectedReviewText": "Chưa có đánh giá"
   },
